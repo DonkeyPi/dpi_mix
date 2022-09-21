@@ -33,3 +33,7 @@ mix ash.stop
 #auto start in runtime
 mix ash.auto true|false
 ```
+
+## References
+
+- https://www.erlang.org/doc/apps/ssh/using_ssh.html

@@ -13,17 +13,18 @@ defmodule Mix.Tasks.Ash.Run do
     {:ok, chan} = :ssh_connection.session_channel(conn, 2000)
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', 2000)
     :ok = :ssh_connection.send(conn, chan, "run #{ash.escript_name}", 2000)
-    receive_msg()
+    receive_msg(conn, chan)
   end
 
-  defp receive_msg() do
+  defp receive_msg(conn, chan) do
     receive do
       {:ssh_cm, _, {:data, _, _, data}} ->
         IO.binwrite(data)
-        receive_msg()
+        receive_msg(conn, chan)
 
       {:ssh_cm, _, {:eof, _}} ->
-        nil
+        :ok = :ssh_connection.close(conn, chan)
+        :ok = :ssh.close(conn)
     end
   end
 end

@@ -13,13 +13,11 @@ defmodule Installer.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :ssh]
     ]
   end
 
   defp deps do
-    [
-      {:sftp_client, "~> 1.4"}
-    ]
+    []
   end
 end
