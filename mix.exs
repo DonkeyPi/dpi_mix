@@ -19,7 +19,8 @@ defmodule Installer.MixProject do
 
   defp deps do
     [
-      {:sftp_client, "~> 1.4"}
+      {:sftp_client, "~> 1.4"},
+      {:sshex, git: "https://github.com/samuelventura/sshex"}
     ]
   end
 end

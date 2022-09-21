@@ -6,27 +6,24 @@ defmodule Mix.Tasks.Ash.Upload do
 
   def run(_args) do
     Mix.Task.run("ash.build")
-    rt = Ash.load_runtime()
-    rtc = Ash.runtime_config(rt)
-    host = Keyword.fetch!(rtc, :host)
-    port = Keyword.get(rtc, :port, Ash.default_port())
-    Mix.shell().info("Uploading to runtime: #{rt}")
+    ash = Ash.load_config()
+    Mix.shell().info("Uploading to runtime: #{ash.runtime}")
     :ok = :ssh.start()
 
     {:ok, :done} =
-      SFTPClient.connect([host: host, port: port], fn conn ->
-        case SFTPClient.make_dir(conn, Ash.apps_folder()) do
+      SFTPClient.connect([host: ash.host, port: ash.port], fn conn ->
+        case SFTPClient.make_dir(conn, ash.apps_folder) do
           :ok -> :ok
           {:error, %SFTPClient.OperationError{reason: :file_already_exists}} -> :ok
-          _ -> Mix.raise("Failure to create #{Ash.apps_folder()}")
+          _ -> Mix.raise("Failure to create #{ash.apps_folder}")
         end
 
-        remote_path = Path.join(Ash.apps_folder(), Ash.escript_name())
+        remote_path = Path.join(ash.apps_folder, ash.escript_name)
 
         {:ok, ^remote_path} =
           SFTPClient.upload_file(
             conn,
-            Ash.escript_path(),
+            ash.escript_path,
             remote_path
           )
 

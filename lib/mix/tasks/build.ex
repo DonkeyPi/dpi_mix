@@ -2,13 +2,13 @@ defmodule Mix.Tasks.Ash.Build do
   use Mix.Task
   alias Mix.Tasks.Ash
 
-  @shortdoc "Builds the application escript"
+  @shortdoc "Builds application for selected runtime"
 
   # https://hexdocs.pm/mix/main/Mix.Tasks.Escript.Build.html
   def run(_args) do
-    rt = Ash.load_runtime()
-    Mix.shell().info("Building for runtime: #{rt}")
+    ash = Ash.load_config()
+    Mix.shell().info("Building for runtime: #{ash.runtime}")
     Mix.Task.run("escript.build")
-    Ash.escript_name() |> File.rename!(Ash.escript_path())
+    ash.escript_name |> File.rename!(ash.escript_path)
   end
 end
