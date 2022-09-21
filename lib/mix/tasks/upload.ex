@@ -10,7 +10,8 @@ defmodule Mix.Tasks.Ash.Upload do
     Mix.shell().info("Uploading to runtime: #{ash.runtime}@#{ash.host}:#{ash.port}")
     :ok = :ssh.start()
     host = ash.host |> String.to_charlist()
-    {:ok, chan, conn} = :ssh_sftp.start_channel(host, ash.port, [])
+    opts = [silently_accept_hosts: true]
+    {:ok, chan, conn} = :ssh_sftp.start_channel(host, ash.port, opts)
 
     :ok =
       case :ssh_sftp.make_dir(chan, ash.apps_folder) do

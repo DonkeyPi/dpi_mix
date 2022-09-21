@@ -9,7 +9,8 @@ defmodule Mix.Tasks.Ash.Run do
     ash = Ash.load_config()
     Mix.shell().info("Running on runtime: #{ash.runtime}")
     host = ash.host |> String.to_charlist()
-    {:ok, conn} = :ssh.connect(host, ash.port, [])
+    opts = [silently_accept_hosts: true]
+    {:ok, conn} = :ssh.connect(host, ash.port, opts)
     {:ok, chan} = :ssh_connection.session_channel(conn, 2000)
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', 2000)
     :ok = :ssh_connection.send(conn, chan, "run #{ash.escript_name}", 2000)
