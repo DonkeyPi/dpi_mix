@@ -51,8 +51,8 @@ defmodule Mix.Tasks.Ash do
 
   def run(_args) do
     ash = load_config()
-    Mix.shell().info("runtime file: #{ash.runtime_path}")
-    Mix.shell().info("escript file: #{ash.escript_path}")
     Mix.shell().info("selected runtime: #{ash.runtime}")
+    Mix.shell().info("runtime file: #{ash.runtime_path}")
+    Mix.shell().info("escript path: #{ash.escript_path}")
   end
 end
