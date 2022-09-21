@@ -16,11 +16,15 @@ mix archive.build
 mix ash.runtime rpi4
 #run app on runtime
 #build+upload+start
-mix ash.run <rt>
-#upload app to target
+mix ash.run
+#upload app to runtime
 mix ash.upload
-#start up in target
+#build app for runtime
+mix ash.build
+#start up in runtime
 mix ash.start
-#stop up in target
+#stop up in runtime
 mix ash.stop
+#auto start in runtime
+mix ash.auto true|false
 ```

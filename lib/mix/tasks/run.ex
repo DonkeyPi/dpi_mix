@@ -8,21 +8,22 @@ defmodule Mix.Tasks.Ash.Run do
     Mix.Task.run("ash.upload")
     ash = Ash.load_config()
     Mix.shell().info("Running on runtime: #{ash.runtime}")
-    {:ok, ip} = ash.host |> String.to_charlist() |> :inet.getaddr(:inet)
-    ip = ip |> :inet_parse.ntoa()
-    {:ok, conn} = SSHEx.connect(ip: ip, port: ash.port)
-    stream = SSHEx.stream(conn, 'run :#{ash.escript_name}')
-    IO.inspect({conn, stream})
+    host = ash.host |> String.to_charlist()
+    {:ok, conn} = :ssh.connect(host, ash.port, [])
+    {:ok, chan} = :ssh_connection.session_channel(conn, 2000)
+    :success = :ssh_connection.subsystem(conn, chan, 'runtime', 2000)
+    :ok = :ssh_connection.send(conn, chan, "run #{ash.escript_name}", 2000)
+    receive_msg()
+  end
 
-    Stream.each(stream, fn msg ->
-      IO.inspect(msg)
+  defp receive_msg() do
+    receive do
+      {:ssh_cm, _, {:data, _, _, data}} ->
+        IO.binwrite(data)
+        receive_msg()
 
-      case msg do
-        {:stdout, row} -> IO.puts(row)
-        {:stderr, row} -> IO.puts(row)
-        {:status, status} -> IO.puts("Exit status #{status}")
-        {:error, reason} -> IO.puts("Error #{inspect(reason)}")
-      end
-    end)
+      {:ssh_cm, _, {:eof, _}} ->
+        nil
+    end
   end
 end
