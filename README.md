@@ -1,21 +1,26 @@
-# Installer
+# Athasha Installer
 
-**TODO: Add description**
+## Development
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `installer` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:installer, "~> 0.1.0"}
-  ]
-end
+```bash
+mix archive.build
+#creates installer-0.1.0.ez
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/installer>.
+## Tasks
 
+```bash
+#set rpi4 as default runtime
+#runtimes defined in mix.exs
+#creates file .runtime
+mix ash.runtime rpi4
+#run app on runtime
+#build+upload+start
+mix ash.run <rt>
+#upload app to target
+mix ash.upload
+#start up in target
+mix ash.start
+#stop up in target
+mix ash.stop
+```
