@@ -3,8 +3,13 @@
 ## Development
 
 ```bash
+#creates installer-<version> in project folder
 mix archive.build
-#creates installer-0.1.0.ez
+#installs installer-<version>.ez archive to 
+#/home/samuel/.asdf/installs/
+mix archive.install 
+#requires vscode github authentication
+mix archive.install git https://github.com/AthashaIO/installer
 ```
 
 ## Tasks

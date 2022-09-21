@@ -1,4 +1,3 @@
 %{
   "sftp_client": {:hex, :sftp_client, "1.4.7", "7b210a154a1929d145a73c8e490f5915f1ed2031fbc4ae12ed3e623122fa6825", [:mix], [], "hexpm", "1d54e28476e7ed71529f8e463aa5b8dfcef6390d798ffad5510299a368cc8345"},
-  "sshex": {:hex, :sshex, "2.2.1", "e1270b8345ea2a66a11c2bb7aed22c93e3bc7bc813486f4ffd0a980e4a898160", [:mix], [], "hexpm", "45b2caa5011dc850e70a2d77e3b62678a3e8bcb903eab6f3e7afb2ea897b13db"},
 }
