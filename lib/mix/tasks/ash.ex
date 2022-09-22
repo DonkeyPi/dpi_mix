@@ -29,6 +29,9 @@ defmodule Mix.Tasks.Ash do
     host = Keyword.fetch!(rtc, :host)
     port = Keyword.get(rtc, :port, @default_port)
 
+    name = pc |> Keyword.fetch!(:app)
+    version = pc |> Keyword.fetch!(:version)
+
     escript_name =
       pc
       |> Keyword.fetch!(:app)
@@ -39,6 +42,8 @@ defmodule Mix.Tasks.Ash do
       |> Path.join(escript_name)
 
     %{
+      name: name,
+      version: version,
       host: host,
       port: port,
       runtime: rt,
@@ -54,5 +59,6 @@ defmodule Mix.Tasks.Ash do
     Mix.shell().info("selected runtime: #{ash.runtime}")
     Mix.shell().info("runtime file: #{ash.runtime_path}")
     Mix.shell().info("escript path: #{ash.escript_path}")
+    Mix.shell().info("config map: #{inspect(ash)}")
   end
 end
