@@ -32,14 +32,16 @@ defmodule Mix.Tasks.Ash do
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)
 
-    escript_name =
+    build_path = Mix.Project.build_path()
+
+    bundle_name =
       pc
       |> Keyword.fetch!(:app)
       |> Atom.to_string()
 
-    escript_path =
-      Mix.Project.build_path()
-      |> Path.join(escript_name)
+    bundle_path =
+      build_path
+      |> Path.join(bundle_name)
 
     %{
       name: name,
@@ -47,10 +49,11 @@ defmodule Mix.Tasks.Ash do
       host: host,
       port: port,
       runtime: rt,
+      build_path: build_path,
       apps_folder: @apps_folder,
       runtime_path: @runtime_path,
-      escript_name: escript_name,
-      escript_path: escript_path
+      bundle_name: bundle_name,
+      bundle_path: bundle_path
     }
   end
 
@@ -58,7 +61,7 @@ defmodule Mix.Tasks.Ash do
     ash = load_config()
     Mix.shell().info("selected runtime: #{ash.runtime}")
     Mix.shell().info("runtime file: #{ash.runtime_path}")
-    Mix.shell().info("escript path: #{ash.escript_path}")
+    Mix.shell().info("bundle path: #{ash.bundle_path}")
     Mix.shell().info("config map: #{inspect(ash)}")
   end
 end

@@ -20,8 +20,8 @@ defmodule Mix.Tasks.Ash.Upload do
         _ -> Mix.raise("Failure to create #{ash.apps_folder}")
       end
 
-    data = File.read!(ash.escript_path)
-    remote_path = Path.join(ash.apps_folder, ash.escript_name)
+    data = File.read!(ash.bundle_path)
+    remote_path = Path.join(ash.apps_folder, ash.bundle_name)
     :ok = :ssh_sftp.write_file(chan, remote_path, data)
     :ok = :ssh_sftp.stop_channel(chan)
     :ok = :ssh.close(conn)

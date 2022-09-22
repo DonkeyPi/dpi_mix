@@ -4,11 +4,13 @@ defmodule Mix.Tasks.Ash.Build do
 
   @shortdoc "Builds application for selected runtime"
 
-  # https://hexdocs.pm/mix/main/Mix.Tasks.Escript.Build.html
   def run(_args) do
     ash = Ash.load_config()
     Mix.shell().info("Building for runtime: #{ash.runtime}")
-    Mix.Task.run("escript.build")
-    ash.escript_name |> File.rename!(ash.escript_path)
+    Mix.Task.run("compile")
+    bundle_path = ash.bundle_path |> String.to_charlist()
+    build_path = ash.build_path |> String.to_charlist()
+    opts = [cwd: build_path, compress: :all]
+    {:ok, ^bundle_path} = :zip.create(bundle_path, ['lib'], opts)
   end
 end
