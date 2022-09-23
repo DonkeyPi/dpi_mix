@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Ash do
   @default_port 8022
   @apps_folder "/ash_apps"
   @runtime_path ".runtime"
+  @cookie_path ".cookie"
 
   def runtime_path(), do: @runtime_path
 
@@ -52,6 +53,7 @@ defmodule Mix.Tasks.Ash do
       build_path: build_path,
       apps_folder: @apps_folder,
       runtime_path: @runtime_path,
+      cookie_path: @cookie_path,
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
