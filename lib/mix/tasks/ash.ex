@@ -6,6 +6,10 @@ defmodule Mix.Tasks.Ash do
   @runtime_path ".runtime"
   @cookie_path ".cookie"
 
+  @toms 5_000
+  @moms 2_000
+
+  def toms(), do: @toms
   def runtime_path(), do: @runtime_path
 
   def load_config() do
@@ -57,6 +61,46 @@ defmodule Mix.Tasks.Ash do
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
+  end
+
+  def stdout(conn, chan) do
+    receive do
+      {:ssh_cm, _, {:data, _, _, data}} ->
+        IO.binwrite(data)
+        stdout(conn, chan)
+
+      {:ssh_cm, _, {:eof, _}} ->
+        :ok = :ssh_connection.close(conn, chan)
+        :ok = :ssh.close(conn)
+    end
+  end
+
+  # check the runtime is still alive
+  def monitor(conn) do
+    :timer.sleep(@moms)
+    {:ok, chan} = :ssh_connection.session_channel(conn, @toms)
+    :success = :ssh_connection.subsystem(conn, chan, 'runtime', @toms)
+    :ok = :ssh_connection.send(conn, chan, "ping", @toms)
+
+    receive do
+      {:ssh_cm, _, {:data, _, _, "pong"}} -> :ok
+      any -> raise "#{inspect(any)}"
+    after
+      @toms -> raise "Monitor timeout"
+    end
+
+    receive do
+      {:ssh_cm, _, {:eof, _}} -> :ok
+      any -> raise "#{inspect(any)}"
+    end
+
+    receive do
+      {:ssh_cm, _, {:closed, _}} -> :ok
+      any -> raise "#{inspect(any)}"
+    end
+
+    :ok = :ssh_connection.close(conn, chan)
+    monitor(conn)
   end
 
   def run(_args) do

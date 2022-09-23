@@ -25,6 +25,9 @@ mix ash.runtime
 #queries cookie and shows shell commands
 mix ash.shell
 
+#connect to the application log
+mix ash.log
+
 #run app on runtime
 #build+upload+start
 mix ash.run
@@ -36,13 +39,12 @@ mix ash.upload
 mix ash.build
 
 #start up in runtime
+#auto flag set to true
 mix ash.start
 
 #stop up in runtime
+#auto flag set to false
 mix ash.stop
-
-#auto start in runtime
-mix ash.auto true|false
 ```
 
 ## References
