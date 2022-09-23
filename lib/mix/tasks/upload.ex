@@ -14,14 +14,15 @@ defmodule Mix.Tasks.Ash.Upload do
     {:ok, chan, conn} = :ssh_sftp.start_channel(host, ash.port, opts)
 
     :ok =
-      case :ssh_sftp.make_dir(chan, ash.apps_folder) do
+      case :ssh_sftp.make_dir(chan, ash.runs_folder) do
         :ok -> :ok
         {:error, :file_already_exists} -> :ok
-        _ -> Mix.raise("Failure to create #{ash.apps_folder}")
+        _ -> Mix.raise("Failure to create #{ash.runs_folder}")
       end
 
     data = File.read!(ash.bundle_path)
-    remote_path = Path.join(ash.apps_folder, ash.bundle_name)
+    remote_path = Path.join(ash.runs_folder, ash.bundle_name)
+    remote_path = "#{remote_path}.zip"
     :ok = :ssh_sftp.write_file(chan, remote_path, data)
     :ok = :ssh_sftp.stop_channel(chan)
     :ok = :ssh.close(conn)

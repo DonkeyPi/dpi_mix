@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Ash do
   use Mix.Task
 
   @default_port 8022
-  @apps_folder "/ash_apps"
+  @runs_folder "/ash_runs"
   @runtime_path ".runtime"
   @cookie_path ".cookie"
 
@@ -26,7 +26,7 @@ defmodule Mix.Tasks.Ash do
       |> Enum.map(fn {k, v} -> {"#{k}", v} end)
       |> Enum.into(%{})
 
-    rtc = rts[rt]
+    rtc = Map.fetch!(rts, rt)
     host = Keyword.fetch!(rtc, :host)
     port = Keyword.get(rtc, :port, @default_port)
 
@@ -51,7 +51,7 @@ defmodule Mix.Tasks.Ash do
       port: port,
       runtime: rt,
       build_path: build_path,
-      apps_folder: @apps_folder,
+      runs_folder: @runs_folder,
       runtime_path: @runtime_path,
       cookie_path: @cookie_path,
       bundle_name: bundle_name,
