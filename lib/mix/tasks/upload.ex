@@ -8,6 +8,7 @@ defmodule Mix.Tasks.Ash.Upload do
     Mix.Task.run("ash.build")
     ash = Ash.load_config()
     Mix.shell().info("Uploading to runtime: #{ash.runtime}@#{ash.host}:#{ash.port}")
+    Mix.shell().info("Uploading bundle: #{ash.bundle_name}")
     :ok = :ssh.start()
     host = ash.host |> String.to_charlist()
     opts = [silently_accept_hosts: true]
@@ -22,7 +23,6 @@ defmodule Mix.Tasks.Ash.Upload do
 
     data = File.read!(ash.bundle_path)
     remote_path = Path.join(ash.runs_folder, ash.bundle_name)
-    remote_path = "#{remote_path}.zip"
     :ok = :ssh_sftp.write_file(chan, remote_path, data)
     :ok = :ssh_sftp.stop_channel(chan)
     :ok = :ssh.close(conn)

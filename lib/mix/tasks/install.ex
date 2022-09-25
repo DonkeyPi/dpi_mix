@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Ash.Install do
     {:ok, conn} = :ssh.connect(host, ash.port, opts)
     {:ok, chan} = :ssh_connection.session_channel(conn, Ash.toms())
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', Ash.toms())
-    :ok = :ssh_connection.send(conn, chan, "install #{ash.bundle_name}", Ash.toms())
+    :ok = :ssh_connection.send(conn, chan, "install #{ash.name}", Ash.toms())
     Ash.stdout(conn, chan)
   end
 end

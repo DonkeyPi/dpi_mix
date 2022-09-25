@@ -9,8 +9,8 @@ defmodule Mix.Tasks.Ash.Build do
     Mix.shell().info("Building for runtime: #{ash.runtime}")
     Mix.Task.run("compile")
     bundle_path = ash.bundle_path |> String.to_charlist()
-    build_path = ash.build_path |> String.to_charlist()
-    opts = [cwd: build_path, compress: :all]
+    # dereference -> local dependencies are links
+    opts = [:compressed, :dereference]
     apps = [ash.name | ash.deps]
 
     paths =
@@ -18,7 +18,11 @@ defmodule Mix.Tasks.Ash.Build do
         Path.join("lib", "#{app}") |> String.to_charlist()
       end
 
-    {:ok, ^bundle_path} = :zip.create(bundle_path, paths, opts)
+    cwd = File.cwd!()
+    :ok = File.cd!(ash.build_path)
+    :ok = :erl_tar.create(bundle_path, paths, opts)
+    :ok = File.cd!(cwd)
     Mix.shell().info("Bundle : #{bundle_path}")
+    # tar -tvf _build/dev/*.tar
   end
 end

@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Ash.Log do
     {:ok, conn} = :ssh.connect(host, ash.port, opts)
     {:ok, chan} = :ssh_connection.session_channel(conn, Ash.toms())
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', Ash.toms())
-    :ok = :ssh_connection.send(conn, chan, "log #{ash.bundle_name}", Ash.toms())
+    :ok = :ssh_connection.send(conn, chan, "log #{ash.name}", Ash.toms())
     Task.start_link(fn -> Ash.monitor(conn) end)
     Ash.stdout(conn, chan)
   end
