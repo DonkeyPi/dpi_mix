@@ -12,5 +12,6 @@ defmodule Mix.Tasks.Ash.Build do
     build_path = ash.build_path |> String.to_charlist()
     opts = [cwd: build_path, compress: :all]
     {:ok, ^bundle_path} = :zip.create(bundle_path, ['lib'], opts)
+    Mix.shell().info("Bundle : #{bundle_path}")
   end
 end
