@@ -30,6 +30,19 @@ defmodule Mix.Tasks.Ash do
       |> Enum.map(fn {k, v} -> {"#{k}", v} end)
       |> Enum.into(%{})
 
+    # fixme: how to filter/include deps of deps
+    deps =
+      pc
+      |> Keyword.fetch!(:deps)
+      |> Enum.filter(fn
+        {_n, p} -> Keyword.get(p, :runtime, true)
+        {_n, _v, p} -> Keyword.get(p, :runtime, true)
+      end)
+      |> Enum.map(fn
+        {n, _p} -> n
+        {n, _v, _p} -> n
+      end)
+
     rtc = Map.fetch!(rts, rt)
     host = Keyword.fetch!(rtc, :host)
     port = Keyword.get(rtc, :port, @default_port)
@@ -50,6 +63,7 @@ defmodule Mix.Tasks.Ash do
 
     %{
       name: name,
+      deps: deps,
       version: version,
       host: host,
       port: port,
