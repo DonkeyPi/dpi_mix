@@ -35,8 +35,9 @@ defmodule Mix.Tasks.Ash do
       pc
       |> Keyword.fetch!(:deps)
       |> Enum.filter(fn
-        {_n, p} -> Keyword.get(p, :runtime, true)
-        {_n, _v, p} -> Keyword.get(p, :runtime, true)
+        {_n, v} when is_binary(v) -> true
+        {_n, p} when is_list(p) -> Keyword.get(p, :runtime, true)
+        {_n, _v, p} when is_list(p) -> Keyword.get(p, :runtime, true)
       end)
       |> Enum.map(fn
         {n, _p} -> n
