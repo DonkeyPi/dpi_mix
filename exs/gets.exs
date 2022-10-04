@@ -1,3 +1,3 @@
 # mix run exs/gets.exs
-# four arrow keys show as ^[[C^[[D^[[B^[[A
+# arrow keys ^[[C^[[D^[[B^[[A
 IO.gets(">")

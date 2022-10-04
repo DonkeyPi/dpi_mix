@@ -50,3 +50,5 @@ mix ash.stop
 ## References
 
 - https://www.erlang.org/doc/apps/ssh/using_ssh.html
+- https://ferd.ca/dev/repl-a-bit-more-and-less-than-that.html
+- https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
