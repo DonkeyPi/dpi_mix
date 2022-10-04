@@ -6,6 +6,7 @@
 # [x] autocomplete self
 # [x] concurrent connections
 # [x] use single connection
+# [ ] remove: Connection closed by peerStatus: 255
 # https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
 
 case System.argv() do
