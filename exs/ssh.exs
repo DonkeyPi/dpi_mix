@@ -1,12 +1,13 @@
 # mix run exs/iex.exs
 # [x] arrow keys ^[[C^[[D^[[B^[[A
 # [x] history
-# [x] autocomplete (exception)
+# [x] autocomplete elixir API
+# [ ] autocomplete self
 # [x] exit import
 # [ ] single connection
 
 case System.argv() do
-  [] -> System.put_env("SSH_USER", "sample")
+  [] -> System.put_env("SSH_USER", "ash")
   [user] -> System.put_env("SSH_USER", user)
 end
 
