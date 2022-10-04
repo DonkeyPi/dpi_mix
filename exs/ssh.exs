@@ -3,4 +3,4 @@
 
 :ok = :ssh.start()
 opts = [silently_accept_hosts: true]
-{:ok, _} = :ssh.shell('localhost', opts)
+:ok = :ssh.shell('localhost', opts)
