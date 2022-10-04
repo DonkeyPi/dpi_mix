@@ -4,8 +4,8 @@
 # [x] exit import
 # [x] autocomplete elixir API
 # [x] autocomplete self
-# [ ] concurrent connections
-# [ ] use single connection
+# [x] concurrent connections
+# [x] use single connection
 
 case System.argv() do
   [] -> System.put_env("SSH_USER", "ash")
@@ -16,13 +16,13 @@ System.put_env("SSH_HOST", "localhost")
 
 user = Process.whereis(:user)
 
-updatable =
-  :erlang.processes()
-  |> Enum.filter(fn pid ->
-    user ==
-      Process.info(pid)
-      |> Keyword.get(:group_leader)
-  end)
+# updatable =
+#   :erlang.processes()
+#   |> Enum.filter(fn pid ->
+#     user ==
+#       Process.info(pid)
+#       |> Keyword.get(:group_leader)
+#   end)
 
 wait_user = fn continue ->
   case Process.whereis(:user) do
@@ -41,29 +41,31 @@ defmodule Shell do
     user = System.get_env("SSH_USER") |> String.to_charlist()
     host = System.get_env("SSH_HOST") |> String.to_charlist()
     opts = [silently_accept_hosts: true, user: user]
-    pid = spawn_link(fn -> expander(host, user, opts) end)
+    {:ok, conn} = :ssh.connect(host, 8022, opts)
+    pid = spawn_link(fn -> expander(conn) end)
 
     expand = fn code ->
       send(pid, {:expand, self(), code})
 
       receive do
         {:expand, ^pid, data} -> data
+      after
+        4000 -> raise "expand timeout"
       end
     end
 
     :ok = Process.group_leader() |> :io.setopts(expand_fun: expand)
-    :ssh.shell(host, 8022, opts)
+    :ssh.shell(conn)
 
     # *** ERROR: Shell process terminated! (^G to start new job) ***
     # Connection closed by peerStatus: 255
     System.halt()
   end
 
-  def expander(host, user, opts) do
-    {:ok, conn} = :ssh.connect(host, 8022, opts)
+  def expander(conn) do
     {:ok, chan} = :ssh_connection.session_channel(conn, 2000)
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', 2000)
-    :ok = :ssh_connection.send(conn, chan, "expand #{user}", 2000)
+    :ok = :ssh_connection.send(conn, chan, "expand", 2000)
     loop(conn, chan, nil)
   end
 
