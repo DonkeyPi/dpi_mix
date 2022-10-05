@@ -57,7 +57,7 @@ defmodule Mix.Tasks.Ash do
       pc
       |> Keyword.fetch!(:app)
       |> Atom.to_string()
-      |> String.replace_suffix("", ".tar")
+      |> String.replace_suffix("", ".tgz")
 
     bundle_path =
       build_path

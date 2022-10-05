@@ -23,6 +23,6 @@ defmodule Mix.Tasks.Ash.Build do
     :ok = :erl_tar.create(bundle_path, paths, opts)
     :ok = File.cd!(cwd)
     Mix.shell().info("Bundle : #{bundle_path}")
-    # tar -tvf _build/dev/*.tar
+    # tar -tvf _build/dev/*.tgz
   end
 end
