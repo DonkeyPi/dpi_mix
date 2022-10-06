@@ -82,7 +82,7 @@ defmodule Mix.Tasks.Ash do
   def stdout(conn, chan) do
     exit_on_enter(conn)
     exit_on_ping(conn)
-    loop(conn, chan)
+    stdout_loop(conn, chan)
   end
 
   def run(_args) do
@@ -96,8 +96,7 @@ defmodule Mix.Tasks.Ash do
   defp exit_on_enter(conn) do
     spawn_link(fn ->
       IO.gets("")
-      :ssh.close(conn)
-      System.halt()
+      cleanup(conn)
     end)
   end
 
@@ -105,15 +104,17 @@ defmodule Mix.Tasks.Ash do
     spawn_link(fn -> monitor(conn) end)
   end
 
-  defp loop(conn, chan) do
+  defp stdout_loop(conn, chan) do
     receive do
       {:ssh_cm, _, {:data, _, _, data}} ->
         IO.binwrite(data)
-        loop(conn, chan)
+        stdout_loop(conn, chan)
 
       {:ssh_cm, _, {:eof, _}} ->
-        :ok = :ssh_connection.close(conn, chan)
-        :ok = :ssh.close(conn)
+        cleanup(conn)
+
+      {:ssh_cm, _, {:closed, _}} ->
+        cleanup(conn)
     end
   end
 
@@ -147,5 +148,10 @@ defmodule Mix.Tasks.Ash do
 
     :ok = :ssh_connection.close(conn, chan)
     monitor(conn)
+  end
+
+  defp cleanup(conn) do
+    :ssh.close(conn)
+    System.halt()
   end
 end
