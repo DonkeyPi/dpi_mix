@@ -4,14 +4,15 @@ defmodule Mix.Tasks.Ash.Upload do
 
   @shortdoc "Uploads application to selected runtime"
 
-  def run(_args) do
+  def run(args) do
     Mix.Task.run("ash.build")
     ash = Ash.load_config()
     Mix.shell().info("Uploading to runtime: #{ash.runtime}@#{ash.host}:#{ash.port}")
     Mix.shell().info("Uploading bundle: #{ash.bundle_name}")
     :ok = :ssh.start()
     host = ash.host |> String.to_charlist()
-    opts = [silently_accept_hosts: true]
+    user = ash.name |> Atom.to_charlist()
+    opts = [silently_accept_hosts: true, user: user]
     {:ok, chan, conn} = :ssh_sftp.start_channel(host, ash.port, opts)
 
     :ok =
@@ -25,6 +26,10 @@ defmodule Mix.Tasks.Ash.Upload do
     remote_path = Path.join(ash.runs_folder, ash.bundle_name)
     :ok = :ssh_sftp.write_file(chan, remote_path, data)
     :ok = :ssh_sftp.stop_channel(chan)
-    :ok = :ssh.close(conn)
+
+    case args do
+      ["keep"] -> Process.put(:ssh_conn, conn)
+      _ -> :ok = :ssh.close(conn)
+    end
   end
 end

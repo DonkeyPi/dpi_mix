@@ -80,10 +80,36 @@ defmodule Mix.Tasks.Ash do
   end
 
   def stdout(conn, chan) do
+    exit_on_enter(conn)
+    exit_on_ping(conn)
+    loop(conn, chan)
+  end
+
+  def run(_args) do
+    ash = load_config()
+    Mix.shell().info("selected runtime: #{ash.runtime}")
+    Mix.shell().info("runtime file: #{ash.runtime_path}")
+    Mix.shell().info("bundle path: #{ash.bundle_path}")
+    Mix.shell().info("config map: #{inspect(ash)}")
+  end
+
+  defp exit_on_enter(conn) do
+    spawn_link(fn ->
+      IO.gets("")
+      :ssh.close(conn)
+      System.halt()
+    end)
+  end
+
+  defp exit_on_ping(conn) do
+    spawn_link(fn -> monitor(conn) end)
+  end
+
+  defp loop(conn, chan) do
     receive do
       {:ssh_cm, _, {:data, _, _, data}} ->
         IO.binwrite(data)
-        stdout(conn, chan)
+        loop(conn, chan)
 
       {:ssh_cm, _, {:eof, _}} ->
         :ok = :ssh_connection.close(conn, chan)
@@ -92,7 +118,7 @@ defmodule Mix.Tasks.Ash do
   end
 
   # check the runtime is still alive
-  def monitor(conn) do
+  defp monitor(conn) do
     :timer.sleep(@moms)
     {:ok, chan} = :ssh_connection.session_channel(conn, @toms)
     :success = :ssh_connection.subsystem(conn, chan, 'runtime', @toms)
@@ -108,22 +134,18 @@ defmodule Mix.Tasks.Ash do
     receive do
       {:ssh_cm, _, {:eof, _}} -> :ok
       any -> raise "#{inspect(any)}"
+    after
+      @toms -> raise "Monitor timeout"
     end
 
     receive do
       {:ssh_cm, _, {:closed, _}} -> :ok
       any -> raise "#{inspect(any)}"
+    after
+      @toms -> raise "Monitor timeout"
     end
 
     :ok = :ssh_connection.close(conn, chan)
     monitor(conn)
-  end
-
-  def run(_args) do
-    ash = load_config()
-    Mix.shell().info("selected runtime: #{ash.runtime}")
-    Mix.shell().info("runtime file: #{ash.runtime_path}")
-    Mix.shell().info("bundle path: #{ash.bundle_path}")
-    Mix.shell().info("config map: #{inspect(ash)}")
   end
 end
