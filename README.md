@@ -1,15 +1,15 @@
-# Athasha Installer
+# Athasha Mix Tasks
 
 ## Development
 
 ```bash
-#creates installer-<version> in project folder
+#creates ash_mix-<version> in project folder
 mix archive.build
-#installs installer-<version>.ez archive to 
+#installs ash_mix-<version>.ez archive to 
 #/home/samuel/.asdf/installs/
 mix archive.install 
 #requires vscode github authentication
-mix archive.install git https://github.com/AthashaIO/installer
+mix archive.install git https://github.com/AthashaIO/ash_mix
 ```
 
 ## Config

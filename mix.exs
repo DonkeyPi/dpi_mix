@@ -1,11 +1,11 @@
-defmodule Installer.MixProject do
+defmodule Ash.Mix.MixProject do
   use Mix.Project
 
   # Archives just sets dependencies for the compiler to be aware of.
   # mix archive.install hex nerves_bootstrap
   def project do
     [
-      app: :installer,
+      app: :ash_mix,
       version: "0.1.2",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
