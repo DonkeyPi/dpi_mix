@@ -17,7 +17,7 @@ defmodule Mix.Tasks.Ash.Eval do
         {"code", path_code, path_code}
       end
 
-    Mix.shell().info("Evaluating on: #{ash.name}@#{ash.runtime}")
+    Mix.shell().info("Evaluating on: #{Ash.runtime_id(ash)}")
     Mix.shell().info("Evaluating #{type}: #{value}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()

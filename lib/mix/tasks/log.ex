@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ash.Log do
   def run(_args) do
     :ssh.start()
     ash = Ash.load_config()
-    Mix.shell().info("Logging from: #{ash.name}@#{ash.runtime}")
+    Mix.shell().info("Logging from: #{Ash.runtime_id(ash)}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]

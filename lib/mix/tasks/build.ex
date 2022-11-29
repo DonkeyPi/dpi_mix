@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Ash.Build do
 
   def run(_args) do
     ash = Ash.load_config()
-    Mix.shell().info("Building for runtime: #{ash.runtime}")
+    Mix.shell().info("Building for: #{Ash.runtime_id(ash)}")
     Mix.Task.run("compile")
     bundle_path = ash.bundle_path |> String.to_charlist()
     # dereference -> local dependencies are links

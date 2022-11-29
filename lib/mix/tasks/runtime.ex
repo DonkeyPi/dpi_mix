@@ -5,16 +5,19 @@ defmodule Mix.Tasks.Ash.Runtime do
   @shortdoc "Selects default runtime"
 
   def run(args) do
-    rt = case args do
-      [rt] -> rt
+    rt =
+      case args do
+        [rt] ->
+          rt
 
-      _ ->
-        {:ok, hostname} = :inet.gethostname()
-        hostname |> List.to_string()
-    end
+        _ ->
+          {:ok, hostname} = :inet.gethostname()
+          hostname |> List.to_string()
+      end
 
-    path = Ash.runtime_path()
+    path = Ash.find_runtime()
     File.write!(path, "#{rt}\n")
-    Mix.shell().info("Selected runtime #{rt} into .runtime file")
+    Mix.shell().info("Selected runtime #{rt} into runtime file")
+    Mix.shell().info("Runtime file #{path}")
   end
 end

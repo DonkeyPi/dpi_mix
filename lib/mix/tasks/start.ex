@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ash.Start do
   def run(_args) do
     :ssh.start()
     ash = Ash.load_config()
-    Mix.shell().info("Starting on runtime: #{ash.runtime}")
+    Mix.shell().info("Starting on: #{Ash.runtime_id(ash)}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]

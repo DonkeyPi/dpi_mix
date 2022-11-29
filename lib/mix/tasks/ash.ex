@@ -3,34 +3,80 @@ defmodule Mix.Tasks.Ash do
 
   @default_port 8022
   @runs_folder "/ash_runs"
-  @runtime_path ".runtime"
-  @cookie_path ".cookie"
+  # ~/.ash_runtime is runtime folder
+  @runtime_file ".ash_runtime.sel"
+  @runtime_list ".ash_runtime.exs"
 
+  # global timeout
   @toms 5_000
+
+  # initial monitor delay
   @moms 2_000
 
   def toms(), do: @toms
-  def runtime_path(), do: @runtime_path
+  def runtime_file(), do: @runtime_file
+  def find_runtime(), do: find_path(@runtime_file, @runtime_file)
+
+  def run(_args) do
+    ash = load_config()
+    Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
+    Mix.shell().info("Runtime file: #{ash.runtime_path}")
+    Mix.shell().info("Bundle path: #{ash.bundle_path}")
+    Mix.shell().info("Config map: #{inspect(ash)}")
+  end
+
+  def runtime_id(ash) do
+    "#{inspect({ash.runtime, ash.runtime_entry})}"
+  end
+
+  def find_path(initial, current) do
+    case File.exists?(current) && File.regular?(current) do
+      true ->
+        current |> Path.expand()
+
+      false ->
+        next = Path.join("..", current)
+        next_d = Path.expand(next) |> Path.dirname()
+        curr_d = Path.expand(current) |> Path.dirname()
+
+        case curr_d != next_d do
+          true -> find_path(initial, next)
+          _ -> initial
+        end
+    end
+  end
 
   def load_config() do
-    unless File.exists?(@runtime_path) do
+    runtime_list = find_path(@runtime_list, @runtime_list)
+    runtime_file = find_path(@runtime_file, @runtime_file)
+
+    unless File.exists?(runtime_file) do
       Mix.raise("Runtime not selected, use: mix ash.runtime <runtime>")
     end
 
+    unless File.exists?(runtime_list) do
+      Mix.raise("Runtime not configured, create file #{@runtime_list}")
+    end
+
     rt =
-      @runtime_path
+      runtime_file
       |> File.read!()
       |> String.trim()
 
-    pc = Mix.Project.config()
-
     rts =
-      pc
-      |> Keyword.fetch!(:runtimes)
+      runtime_list
+      |> Code.eval_file()
+      |> elem(0)
       |> Enum.map(fn {k, v} -> {"#{k}", v} end)
       |> Enum.into(%{})
 
-    # fixme: how to filter/include deps of deps
+    unless Map.has_key?(rts, rt) do
+      Mix.raise("Runtime #{rt} not found in #{runtime_list}")
+    end
+
+    pc = Mix.Project.config()
+
+    # FIXME: how to filter/include deps of deps
     deps =
       pc
       |> Keyword.fetch!(:deps)
@@ -47,6 +93,9 @@ defmodule Mix.Tasks.Ash do
     rtc = Map.fetch!(rts, rt)
     host = Keyword.fetch!(rtc, :host)
     port = Keyword.get(rtc, :port, @default_port)
+    target = Keyword.fetch!(rtc, :target)
+
+    System.put_env("MIX_TARGET", "#{target}")
 
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)
@@ -67,30 +116,20 @@ defmodule Mix.Tasks.Ash do
       name: name,
       deps: deps,
       version: version,
+      target: target,
       host: host,
       port: port,
       runtime: rt,
       build_path: build_path,
       runs_folder: @runs_folder,
-      runtime_path: @runtime_path,
-      cookie_path: @cookie_path,
+      runtime_entry: rts[rt],
+      runtime_file: @runtime_file,
+      runtime_path: runtime_file,
+      runtimes_file: @runtime_list,
+      runtimes_path: runtime_list,
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
-  end
-
-  def stdout(conn, chan) do
-    exit_on_enter(conn)
-    exit_on_ping(conn)
-    stdout_loop(conn, chan)
-  end
-
-  def run(_args) do
-    ash = load_config()
-    Mix.shell().info("selected runtime: #{ash.runtime}")
-    Mix.shell().info("runtime file: #{ash.runtime_path}")
-    Mix.shell().info("bundle path: #{ash.bundle_path}")
-    Mix.shell().info("config map: #{inspect(ash)}")
   end
 
   defp exit_on_enter(conn) do
@@ -102,6 +141,12 @@ defmodule Mix.Tasks.Ash do
 
   defp exit_on_ping(conn) do
     spawn_link(fn -> monitor(conn) end)
+  end
+
+  def stdout(conn, chan) do
+    exit_on_enter(conn)
+    exit_on_ping(conn)
+    stdout_loop(conn, chan)
   end
 
   defp stdout_loop(conn, chan) do
