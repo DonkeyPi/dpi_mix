@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Ash do
   def find_runtime(), do: find_path(@runtime_file, @runtime_file)
 
   def run(_args) do
-    ash = load_config()
+    ash = get_config()
     Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
     Mix.shell().info("Runtime file: #{ash.runtime_path}")
     Mix.shell().info("Bundle path: #{ash.bundle_path}")
@@ -44,6 +44,15 @@ defmodule Mix.Tasks.Ash do
           _ -> initial
         end
     end
+  end
+
+  def get_config() do
+    if Process.whereis(__MODULE__) == nil do
+      config = load_config()
+      Agent.start_link(fn -> config end, name: __MODULE__)
+    end
+
+    Agent.get(__MODULE__, fn config -> config end)
   end
 
   def load_config() do
@@ -74,6 +83,23 @@ defmodule Mix.Tasks.Ash do
       Mix.raise("Runtime #{rt} not found in #{runtime_list}")
     end
 
+    rtc = Map.fetch!(rts, rt)
+    host = Keyword.fetch!(rtc, :host)
+    port = Keyword.get(rtc, :port, @default_port)
+    target = Keyword.get(rtc, :target, :host)
+
+    # override environment
+    if Mix.target() != target do
+      System.put_env("MIX_TARGET", "#{target}")
+      Mix.target(target)
+    end
+
+    # All it does is to append aliases to core mix tasks.
+    # Nerves.Bootstrap.Aliases.init could be called directly
+    # as that is all the application does on init but
+    # nerves checks for the app to be running later on.
+    :ok = Application.ensure_started(:nerves_bootstrap)
+
     pc = Mix.Project.config()
 
     # FIXME: how to filter/include deps of deps
@@ -89,13 +115,6 @@ defmodule Mix.Tasks.Ash do
         {n, _p} -> n
         {n, _v, _p} -> n
       end)
-
-    rtc = Map.fetch!(rts, rt)
-    host = Keyword.fetch!(rtc, :host)
-    port = Keyword.get(rtc, :port, @default_port)
-    target = Keyword.fetch!(rtc, :target)
-
-    System.put_env("MIX_TARGET", "#{target}")
 
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)

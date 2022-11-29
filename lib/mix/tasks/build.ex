@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Ash.Build do
   @shortdoc "Builds application for selected runtime"
 
   def run(_args) do
-    ash = Ash.load_config()
+    ash = Ash.get_config()
     Mix.shell().info("Building for: #{Ash.runtime_id(ash)}")
     Mix.Task.run("compile")
     bundle_path = ash.bundle_path |> String.to_charlist()

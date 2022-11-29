@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ash.Eval do
   def run(args) do
     :ssh.start()
     path_code = Enum.join(args, " ")
-    ash = Ash.load_config()
+    ash = Ash.get_config()
 
     {type, value, code} =
       if String.starts_with?(path_code, "file:") do

@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Ash.Stop do
 
   def run(_args) do
     :ssh.start()
-    ash = Ash.load_config()
+    ash = Ash.get_config()
     Mix.shell().info("Stopping on: #{Ash.runtime_id(ash)}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()

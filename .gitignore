@@ -27,5 +27,5 @@ installer-*.tar
 
 /.elixir_ls/
 
-.runtime
-.cookie
+.ash_runtime.*
+

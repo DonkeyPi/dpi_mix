@@ -5,11 +5,11 @@ defmodule Mix.Tasks.Ash.Upload do
   @shortdoc "Uploads application to selected runtime"
 
   def run(args) do
+    :ok = :ssh.start()
     Mix.Task.run("ash.build")
-    ash = Ash.load_config()
+    ash = Ash.get_config()
     Mix.shell().info("Uploading to: #{Ash.runtime_id(ash)}")
     Mix.shell().info("Uploading bundle: #{ash.bundle_name}")
-    :ok = :ssh.start()
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]

@@ -12,12 +12,28 @@ mix archive.install
 mix archive.install git https://github.com/AthashaIO/installer
 ```
 
+## Config
+
+```bash
+#cat .ash_runtime.sel
+rpi4
+#cat .ash_runtime.exs
+[
+  {:p3420, target: :host, host: "localhost"},
+  {:svmbair, target: :host, host: "localhost"},
+  {:rpi4, target: :rpi4, host: "athasha-4ad8.local"},
+  {:rpi400, target: :rpi4, host: "athasha-4975.local"},
+  {:rpi3, target: :rpi3, host: "athasha-62c2.local"},
+  {:qemu, target: :x86_64, host: "athasha-3456.local"}
+]
+```
+
 ## Tasks
 
 ```bash
 #runtimes defined in mix.exs
 #set rpi4 as default runtime
-#creates file .runtime
+#creates file .ash_runtime.sel
 mix ash.runtime rpi4
 #arg default to hostname
 mix ash.runtime
@@ -35,6 +51,10 @@ mix ash.run
 #upload app to runtime
 mix ash.upload
 
+#manages deps for runtime
+#task: get | update | clean | ...
+mix ash.deps <task> <args...>
+
 #build app for runtime
 mix ash.build
 
@@ -46,6 +66,13 @@ mix ash.start
 #auto flag set to false
 mix ash.stop
 ```
+
+## Roadmap
+
+- [x] Use target from selected runtime config. 
+- [-] Load nerves system dependency from runtime config.
+  - Deps changes are infrequent
+  - Deps will be autogen eventually
 
 ## References
 

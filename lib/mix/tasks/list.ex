@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Ash.List do
 
   def run(_args) do
     :ssh.start()
-    ash = Ash.load_config()
+    ash = Ash.get_config()
     Mix.shell().info("Listing from: #{Ash.runtime_id(ash)}")
     host = ash.host |> String.to_charlist()
     opts = [silently_accept_hosts: true]
