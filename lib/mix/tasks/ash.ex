@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Ash do
   end
 
   def find_path(initial, current) do
-    case File.exists?(current) && File.regular?(current) do
+    case File.regular?(current) do
       true ->
         current |> Path.expand()
 
@@ -101,21 +101,7 @@ defmodule Mix.Tasks.Ash do
     :ok = Application.ensure_started(:nerves_bootstrap)
 
     pc = Mix.Project.config()
-
-    # FIXME: how to filter/include deps of deps
-    deps =
-      pc
-      |> Keyword.fetch!(:deps)
-      |> Enum.filter(fn
-        {_n, v} when is_binary(v) -> true
-        {_n, p} when is_list(p) -> Keyword.get(p, :runtime, true)
-        {_n, _v, p} when is_list(p) -> Keyword.get(p, :runtime, true)
-      end)
-      |> Enum.map(fn
-        {n, _p} -> n
-        {n, _v, _p} -> n
-      end)
-
+    deps = get_deps(pc)
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)
 
@@ -217,5 +203,58 @@ defmodule Mix.Tasks.Ash do
   defp cleanup(conn) do
     :ssh.close(conn)
     System.halt()
+  end
+
+  defp get_deps(pc) do
+    pc
+    |> runtime_deps()
+    |> recurse_deps([])
+    |> Enum.map(fn {name, _} -> name end)
+  end
+
+  defp runtime_deps(pc) do
+    pc
+    |> Keyword.fetch!(:deps)
+    |> Enum.filter(fn
+      {_n, v} when is_binary(v) -> true
+      {_n, p} when is_list(p) -> Keyword.get(p, :runtime, true)
+      {_n, _v, p} when is_list(p) -> Keyword.get(p, :runtime, true)
+    end)
+    |> Enum.map(fn
+      {n, p} -> {n, {p}}
+      {n, v, p} -> {n, {v, p}}
+    end)
+  end
+
+  defp recurse_deps([], acc), do: acc
+
+  defp recurse_deps([{name, props} | tail], acc) do
+    path = get_proj_path(name, props)
+
+    acc =
+      Mix.Project.in_project(name, path, fn _module ->
+        Mix.Project.config()
+        |> runtime_deps()
+        |> recurse_deps([])
+      end) ++ acc
+
+    recurse_deps(tail, [{name, props} | acc])
+  end
+
+  defp get_proj_path(name, props) do
+    path =
+      Mix.Project.deps_path()
+      |> Path.join("#{name}")
+
+    case File.dir?(path) do
+      true ->
+        path
+
+      _ ->
+        case props do
+          {p} -> Keyword.fetch!(p, :path)
+          {_, p} -> Keyword.fetch!(p, :path)
+        end
+    end
   end
 end
