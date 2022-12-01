@@ -69,6 +69,12 @@ mix ash.stop
 
 ## Roadmap
 
+- [ ] Eval and shell wont kill their processes on exit
+  - To detect process are alive try bang registering
+  - true = Process.register(self(), :some_name)
+  - typing exit on shell does kill the process
+  - ssh connection drop should be detected
+  - pending to check if there is a timeout
 - [x] Use target from selected runtime config. 
 - [-] Load nerves system dependency from runtime config.
   - Deps changes are infrequent
