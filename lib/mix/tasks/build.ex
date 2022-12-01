@@ -11,7 +11,11 @@ defmodule Mix.Tasks.Ash.Build do
     bundle_path = ash.bundle_path |> String.to_charlist()
     # dereference makes for huge files that install slow
     opts = [:compressed]
-    apps = [ash.name | ash.deps]
+    # delay recursing deps untils compile task
+    # ensures deps have being fetched or deps
+    # with format {name, version} will not be accesible.
+    deps = Mix.Project.config() |> Ash.get_deps()
+    apps = [ash.name | deps]
 
     paths =
       for app <- apps do

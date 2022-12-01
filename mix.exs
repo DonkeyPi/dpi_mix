@@ -6,7 +6,7 @@ defmodule Ash.Mix.MixProject do
   def project do
     [
       app: :ash_mix,
-      version: "0.1.4",
+      version: "0.1.5",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       archives: [nerves_bootstrap: "~> 1.11"],

@@ -101,7 +101,6 @@ defmodule Mix.Tasks.Ash do
     :ok = Application.ensure_started(:nerves_bootstrap)
 
     pc = Mix.Project.config()
-    deps = get_deps(pc)
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)
 
@@ -119,7 +118,6 @@ defmodule Mix.Tasks.Ash do
 
     %{
       name: name,
-      deps: deps,
       version: version,
       target: target,
       host: host,
@@ -205,7 +203,7 @@ defmodule Mix.Tasks.Ash do
     System.halt()
   end
 
-  defp get_deps(pc) do
+  def get_deps(pc) do
     pc
     |> runtime_deps()
     |> recurse_deps([])
@@ -251,9 +249,11 @@ defmodule Mix.Tasks.Ash do
         path
 
       _ ->
+        # deps with format {name, version}
+        # should not get here after deps.get
         case props do
-          {p} -> Keyword.fetch!(p, :path)
-          {_, p} -> Keyword.fetch!(p, :path)
+          {_, p} -> Keyword.get(p, :path)
+          {p} -> Keyword.get(p, :path)
         end
     end
   end
