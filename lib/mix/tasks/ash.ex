@@ -4,8 +4,8 @@ defmodule Mix.Tasks.Ash do
   @default_port 8022
   @runs_folder "/ash_runs"
   # ~/.ash_runtime is runtime folder
-  @runtime_file ".ash_runtime.sel"
-  @runtime_list ".ash_runtime.exs"
+  @ash_mix_srt ".ash_mix.srt"
+  @ash_mix_exs ".ash_mix.exs"
 
   # global timeout
   @toms 5_000
@@ -14,8 +14,8 @@ defmodule Mix.Tasks.Ash do
   @moms 2_000
 
   def toms(), do: @toms
-  def runtime_file(), do: @runtime_file
-  def find_runtime(), do: find_path(@runtime_file, @runtime_file)
+  def ash_mix_srt(), do: @ash_mix_srt
+  def find_ash_mix_srt(), do: find_path(@ash_mix_srt, @ash_mix_srt)
 
   def run(_args) do
     ash = get_config()
@@ -56,31 +56,37 @@ defmodule Mix.Tasks.Ash do
   end
 
   def load_config() do
-    runtime_list = find_path(@runtime_list, @runtime_list)
-    runtime_file = find_path(@runtime_file, @runtime_file)
+    ash_mix_exs = find_path(@ash_mix_exs, @ash_mix_exs)
+    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
 
-    unless File.exists?(runtime_file) do
+    unless File.exists?(ash_mix_srt) do
       Mix.raise("Runtime not selected, use: mix ash.runtime <runtime>")
     end
 
-    unless File.exists?(runtime_list) do
-      Mix.raise("Runtime not configured, create file #{@runtime_list}")
+    unless File.exists?(ash_mix_exs) do
+      Mix.raise("Runtime not configured, create file #{@ash_mix_exs}")
     end
 
     rt =
-      runtime_file
+      ash_mix_srt
       |> File.read!()
       |> String.trim()
+      |> String.to_atom()
 
-    rts =
-      runtime_list
+    mix_ex =
+      ash_mix_exs
       |> Code.eval_file()
       |> elem(0)
-      |> Enum.map(fn {k, v} -> {"#{k}", v} end)
+
+    nerves_deps = mix_ex |> Keyword.get(:nerves_deps, [])
+
+    rts =
+      mix_ex
+      |> Keyword.get(:ash_runtimes, [])
       |> Enum.into(%{})
 
     unless Map.has_key?(rts, rt) do
-      Mix.raise("Runtime #{rt} not found in #{runtime_list}")
+      Mix.raise("Runtime #{rt} not found in #{ash_mix_exs}")
     end
 
     rtc = Map.fetch!(rts, rt)
@@ -88,11 +94,17 @@ defmodule Mix.Tasks.Ash do
     port = Keyword.get(rtc, :port, @default_port)
     target = Keyword.get(rtc, :target, :host)
 
-    # override environment
+    # override target and reload config/config.exs
     if Mix.target() != target do
       System.put_env("MIX_TARGET", "#{target}")
       Mix.target(target)
+      Mix.Tasks.Loadconfig.run([])
     end
+
+    update_config(nerves_deps)
+
+    # firmware project auto start it in config/config.ex
+    Application.stop(:nerves_bootstrap)
 
     # All it does is to append aliases to core mix tasks.
     # Nerves.Bootstrap.Aliases.init could be called directly
@@ -126,10 +138,10 @@ defmodule Mix.Tasks.Ash do
       build_path: build_path,
       runs_folder: @runs_folder,
       runtime_entry: rts[rt],
-      runtime_file: @runtime_file,
-      runtime_path: runtime_file,
-      runtimes_file: @runtime_list,
-      runtimes_path: runtime_list,
+      ash_mix_srt: @ash_mix_srt,
+      runtime_path: ash_mix_srt,
+      runtimes_file: @ash_mix_exs,
+      runtimes_path: ash_mix_exs,
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
@@ -255,6 +267,57 @@ defmodule Mix.Tasks.Ash do
           {_, p} -> Keyword.get(p, :path)
           {p} -> Keyword.get(p, :path)
         end
+    end
+  end
+
+  defp defs_map(deps) do
+    for dep <- deps, into: %{} do
+      case dep do
+        {n, vp} -> {n, {n, vp}}
+        {n, v, p} -> {n, {n, v, p}}
+      end
+    end
+  end
+
+  # from nerves_bootstrap/aliases.ex#L5
+  # This assumes that once the nerves environment
+  # is setup at the top level, it will permeate to
+  # dependencies.
+  # Adds nerves deps and elixir_make to compilers list,
+  # and set the clean task, if present in the final deps.
+  def update_config(nerves_deps) do
+    with %{} <- Mix.ProjectStack.peek(),
+         %{name: name, config: config, file: file} <- Mix.ProjectStack.pop(),
+         nil <- Mix.ProjectStack.peek() do
+      deps_c = Keyword.get(config, :deps, [])
+      deps_m = defs_map(deps_c ++ nerves_deps)
+      deps_n = deps_m |> Enum.map(fn {_, dep} -> dep end)
+      config = Keyword.put(config, :deps, deps_n)
+      archives = Keyword.get(config, :archives, [])
+      # linux only,
+      makefile = file |> Path.dirname() |> Path.join("Makefile")
+
+      # Add elixir_make and clean target only if makefile exists.
+      config_n =
+        with true <- File.regular?(makefile),
+             true <- Map.has_key?(deps_m, :elixir_make),
+             compilers <- Keyword.get(config, :compilers, []),
+             false <- Enum.member?(compilers, :elixir_make) do
+          config = Keyword.put(config, :make_clean, ["clean"])
+          Keyword.put(config, :compilers, [:elixir_make | compilers])
+        else
+          _ -> config
+        end
+
+      # Update config only if ash_mix archive is present.
+      case Keyword.has_key?(archives, :ash_mix) do
+        true -> :ok = Mix.ProjectStack.push(name, config_n, file)
+        _ -> :ok = Mix.ProjectStack.push(name, config, file)
+      end
+    else
+      # We are not at the top of the stack. Do nothing.
+      _ ->
+        :ok
     end
   end
 end

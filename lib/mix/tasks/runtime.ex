@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Ash.Runtime do
           hostname |> List.to_string()
       end
 
-    path = Ash.find_runtime()
+    path = Ash.find_ash_mix_srt()
     File.write!(path, "#{rt}\n")
     Mix.shell().info("Selected runtime #{rt} into runtime file")
     Mix.shell().info("Runtime file #{path}")
