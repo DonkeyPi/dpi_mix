@@ -75,6 +75,7 @@ mix ash.stop
   - typing exit on shell does kill the process
   - ssh connection drop should be detected
   - pending to check if there is a timeout
+  - same happens if using ssh -p8022 app@hostname
 - [x] Use target from selected runtime config. 
 - [-] Load nerves system dependency from runtime config.
   - Deps changes are infrequent
