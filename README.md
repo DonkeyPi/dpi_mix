@@ -1,4 +1,4 @@
-# Athasha Mix Tasks
+# Athasha Mix
 
 ## Development
 
