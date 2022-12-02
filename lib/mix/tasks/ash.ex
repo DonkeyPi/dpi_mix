@@ -27,6 +27,11 @@ defmodule Mix.Tasks.Ash do
         Mix.shell().info("Bundle path: #{ash.bundle_path}")
         Mix.shell().info("Config map: #{inspect(ash)}")
 
+      ["upload"] ->
+        ash = init()
+        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
+        Mix.Task.run("upload", [ash.host])
+
       [task | args] ->
         if task == "test", do: System.put_env("MIX_ENV", "test")
         ash = init()
