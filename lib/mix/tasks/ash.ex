@@ -214,7 +214,14 @@ defmodule Mix.Tasks.Ash do
                compilers <- Keyword.get(config, :compilers, []),
                false <- Enum.member?(compilers, :elixir_make) do
             config = Keyword.put_new(config, :make_clean, ["clean"])
-            Keyword.put(config, :compilers, [:elixir_make | compilers])
+
+            compilers =
+              case compilers do
+                [] -> [:elixir_make | Mix.compilers()]
+                _ -> [:elixir_make | compilers]
+              end
+
+            Keyword.put(config, :compilers, compilers)
           else
             _ -> config
           end
