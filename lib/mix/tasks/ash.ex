@@ -202,13 +202,12 @@ defmodule Mix.Tasks.Ash do
         deps_m = defs_map(deps_c ++ nerves_deps)
         deps_n = deps_m |> Enum.map(fn {_, dep} -> dep end)
         config = Keyword.put(config, :deps, deps_n)
-        archives = Keyword.get(config, :archives, [])
         makefile = file |> Path.dirname() |> Path.join("Makefile")
 
         # Add elixir_make and clean target only if makefile exists.
         # Clean target only added if make_clean not present already.
         # No changes at all if elixir_make is already listed.
-        config_n =
+        config =
           with true <- File.regular?(makefile),
                true <- Map.has_key?(deps_m, :elixir_make),
                compilers <- Keyword.get(config, :compilers, []),
@@ -226,11 +225,7 @@ defmodule Mix.Tasks.Ash do
             _ -> config
           end
 
-        # Update config only if ash_mix archive is present.
-        case Keyword.has_key?(archives, :ash_mix) do
-          true -> :ok = Mix.ProjectStack.push(name, config_n, file)
-          _ -> :ok = Mix.ProjectStack.push(name, config, file)
-        end
+        :ok = Mix.ProjectStack.push(name, config, file)
 
       _ ->
         :ok
