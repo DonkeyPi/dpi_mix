@@ -304,8 +304,10 @@ defmodule Mix.Tasks.Ash do
   defp recurse_deps([], acc), do: acc
 
   defp recurse_deps([{name, props} | tail], acc) do
+    # Use cached root build_path
     path =
       get_config()[:ash_config][:build_path]
+      |> Path.join("lib")
       |> Path.join("#{name}")
 
     # Ignore deps that didn't make it to the build dir after compile.
