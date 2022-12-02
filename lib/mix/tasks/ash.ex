@@ -17,6 +17,7 @@ defmodule Mix.Tasks.Ash do
   def ash_mix_srt(), do: @ash_mix_srt
   def find_ash_mix_srt(), do: find_path(@ash_mix_srt, @ash_mix_srt)
   def runtime_id(ash), do: "#{inspect({ash.runtime, ash.runtime_entry})}"
+  def init(), do: get_config()[:ash_config]
 
   def run(args) do
     case args do
@@ -57,12 +58,6 @@ defmodule Mix.Tasks.Ash do
     end
   end
 
-  def init() do
-    config = get_config()
-    update_config()
-    config[:ash_config]
-  end
-
   def get_config() do
     if Process.whereis(__MODULE__) == nil do
       config = load_config()
@@ -84,12 +79,7 @@ defmodule Mix.Tasks.Ash do
     stdout_loop(conn, chan)
   end
 
-  defp update_config() do
-    %{
-      ash_config: %{target: target},
-      nerves_deps: nerves_deps
-    } = get_config()
-
+  defp update_config(target, nerves_deps) do
     # Override target and reload config/config.exs.
     if Mix.target() != target do
       System.put_env("MIX_TARGET", "#{target}")
@@ -147,6 +137,9 @@ defmodule Mix.Tasks.Ash do
     host = Keyword.fetch!(rtc, :host)
     port = Keyword.get(rtc, :port, @default_port)
     target = Keyword.get(rtc, :target, :host)
+
+    # Change target before build_path is cached.
+    update_config(target, nerves_deps)
 
     pc = Mix.Project.config()
     name = pc |> Keyword.fetch!(:app)
