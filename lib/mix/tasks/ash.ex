@@ -17,12 +17,21 @@ defmodule Mix.Tasks.Ash do
   def ash_mix_srt(), do: @ash_mix_srt
   def find_ash_mix_srt(), do: find_path(@ash_mix_srt, @ash_mix_srt)
 
-  def run(_args) do
-    ash = get_config()
-    Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
-    Mix.shell().info("Runtime file: #{ash.runtime_path}")
-    Mix.shell().info("Bundle path: #{ash.bundle_path}")
-    Mix.shell().info("Config map: #{inspect(ash)}")
+  def run(args) do
+    case args do
+      [] ->
+        ash = get_config()
+        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
+        Mix.shell().info("Runtime file: #{ash.runtime_path}")
+        Mix.shell().info("Bundle path: #{ash.bundle_path}")
+        Mix.shell().info("Config map: #{inspect(ash)}")
+
+      [task | args] ->
+        if task == "test", do: System.put_env("MIX_ENV", "test")
+        ash = get_config()
+        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
+        Mix.Task.run(task, args)
+    end
   end
 
   def runtime_id(ash) do
