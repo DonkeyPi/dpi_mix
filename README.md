@@ -1,4 +1,4 @@
-# Athasha Mix
+# AppShell Mix
 
 ## Development
 
@@ -9,7 +9,7 @@ mix archive.build
 #/home/samuel/.asdf/installs/
 mix archive.install 
 #requires vscode github authentication
-mix archive.install git https://github.com/AthashaIO/ash_mix
+mix archive.install git https://github.com/AppShellIO/ash_mix
 ```
 
 ## Config
@@ -21,10 +21,10 @@ rpi4
 [
   {:p3420, target: :host, host: "localhost"},
   {:svmbair, target: :host, host: "localhost"},
-  {:rpi4, target: :rpi4, host: "athasha-4ad8.local"},
-  {:rpi400, target: :rpi4, host: "athasha-4975.local"},
-  {:rpi3, target: :rpi3, host: "athasha-62c2.local"},
-  {:qemu, target: :x86_64, host: "athasha-3456.local"}
+  {:rpi4, target: :rpi4, host: "ash-4ad8.local"},
+  {:rpi400, target: :rpi4, host: "ash-4975.local"},
+  {:rpi3, target: :rpi3, host: "ash-62c2.local"},
+  {:qemu, target: :x86_64, host: "ash-3456.local"}
 ]
 ```
 
