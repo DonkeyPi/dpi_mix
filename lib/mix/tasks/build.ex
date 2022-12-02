@@ -5,15 +5,9 @@ defmodule Mix.Tasks.Ash.Build do
   @shortdoc "Builds application for selected runtime"
 
   def run(_args) do
-    ash = Ash.get_config()
+    ash = Ash.init()
     Mix.shell().info("Building for: #{Ash.runtime_id(ash)}")
     Mix.Task.run("compile")
-    bundle_path = ash.bundle_path |> String.to_charlist()
-    # dereference makes for huge files that install slow
-    opts = [:compressed]
-    # delay recursing deps untils compile task
-    # ensures deps have being fetched or deps
-    # with format {name, version} will not be accesible.
     deps = Mix.Project.config() |> Ash.get_deps()
     apps = [ash.name | deps]
 
@@ -49,6 +43,9 @@ defmodule Mix.Tasks.Ash.Build do
 
     cwd = File.cwd!()
     :ok = File.cd!(ash.build_path)
+    # dereference makes for huge files that install slow
+    opts = [:compressed]
+    bundle_path = ash.bundle_path |> String.to_charlist()
     :ok = :erl_tar.create(bundle_path, paths, opts)
     :ok = File.cd!(cwd)
     Mix.shell().info("Bundle : #{bundle_path}")

@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ash.Upload do
   def run(args) do
     :ok = :ssh.start()
     Mix.Task.run("ash.build")
-    ash = Ash.get_config()
+    ash = Ash.init()
     Mix.shell().info("Uploading to: #{Ash.runtime_id(ash)}")
     Mix.shell().info("Uploading bundle: #{ash.bundle_name}")
     host = ash.host |> String.to_charlist()

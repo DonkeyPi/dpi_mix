@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Ash.Shell do
   # worked out at exs/ssh.exs
   # https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
   def run(_args) do
-    ash = Ash.get_config()
+    ash = Ash.init()
     Mix.shell().info("Connecting to app shell: #{Ash.runtime_id(ash)}")
     Mix.shell().info("ssh -p#{ash.port} #{ash.name}@#{ash.host}")
     host = ash.host |> String.to_charlist()
