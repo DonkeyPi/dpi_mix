@@ -58,6 +58,19 @@ defmodule Mix.Tasks.Ash do
     end
   end
 
+  def get_rt() do
+    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
+
+    unless File.exists?(ash_mix_srt) do
+      Mix.raise("Runtime not selected, use: mix ash.runtime <runtime>")
+    end
+
+    ash_mix_srt
+    |> File.read!()
+    |> String.trim()
+    |> String.to_atom()
+  end
+
   def get_config() do
     if Process.whereis(__MODULE__) == nil do
       config = load_config()
