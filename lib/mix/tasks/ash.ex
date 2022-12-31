@@ -361,7 +361,8 @@ defmodule Mix.Tasks.Ash do
           Keyword.get(p, :path)
       end
 
-    if File.dir?(path), do: path, else: nil
+    # FIXME: :elixir_make returns nil path after adding timezone dep to ash_app
+    if path != nil and File.dir?(path), do: path, else: nil
   end
 
   defp defs_map(deps) do
