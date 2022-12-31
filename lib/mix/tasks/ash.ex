@@ -17,7 +17,7 @@ defmodule Mix.Tasks.Ash do
   def ash_mix_srt(), do: @ash_mix_srt
   def find_ash_mix_srt(), do: find_path(@ash_mix_srt, @ash_mix_srt)
   def runtime_id(ash), do: "#{inspect({ash.runtime, ash.runtime_entry})}"
-  def init(), do: get_config()[:ash_config]
+  def init(), do: get_config().ash_config
 
   def run(args) do
     case args do
@@ -62,7 +62,7 @@ defmodule Mix.Tasks.Ash do
     ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
 
     unless File.exists?(ash_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix ash.runtime <runtime>")
+      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
     end
 
     ash_mix_srt
@@ -112,12 +112,77 @@ defmodule Mix.Tasks.Ash do
     :ok = Application.ensure_started(:nerves_bootstrap)
   end
 
+  def basic_config(with_app) do
+    ash_mix_exs = find_path(@ash_mix_exs, @ash_mix_exs)
+    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
+
+    unless File.exists?(ash_mix_srt) do
+      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
+    end
+
+    unless File.exists?(ash_mix_exs) do
+      Mix.raise("Runtime not configured, create file #{@ash_mix_exs}")
+    end
+
+    rt =
+      ash_mix_srt
+      |> File.read!()
+      |> String.trim()
+      |> String.to_atom()
+
+    mix_ex =
+      ash_mix_exs
+      |> Code.eval_file()
+      |> elem(0)
+
+    rts =
+      mix_ex
+      |> Keyword.get(:ash_runtimes, [])
+      |> Enum.into(%{})
+
+    unless Map.has_key?(rts, rt) do
+      Mix.raise("Runtime #{rt} not found in #{ash_mix_exs}")
+    end
+
+    rtc = Map.fetch!(rts, rt)
+    host = Keyword.get(rtc, :host, "localhost")
+    port = Keyword.get(rtc, :port, @default_port)
+    target = Keyword.get(rtc, :target, :host)
+
+    %{
+      name: :ash,
+      target: target,
+      host: host,
+      port: port,
+      runtime: rt,
+      runtime_entry: rts[rt],
+      ash_mix_srt_f: @ash_mix_srt,
+      ash_mix_srt_p: ash_mix_srt,
+      ash_mix_exs_f: @ash_mix_exs,
+      ash_mix_exs_p: ash_mix_exs
+    }
+    |> load_app(with_app)
+  end
+
+  defp load_app(map, false), do: map
+
+  defp load_app(map, true) do
+    unless File.exists?("mix.exs") do
+      Mix.raise("No mix.exs in current folder.")
+    end
+
+    pc = Mix.Project.config()
+    name = pc |> Keyword.fetch!(:app)
+    version = pc |> Keyword.fetch!(:version)
+    Map.merge(map, %{name: name, version: version})
+  end
+
   defp load_config() do
     ash_mix_exs = find_path(@ash_mix_exs, @ash_mix_exs)
     ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
 
     unless File.exists?(ash_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix ash.runtime <runtime>")
+      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
     end
 
     unless File.exists?(ash_mix_exs) do
@@ -147,12 +212,16 @@ defmodule Mix.Tasks.Ash do
     end
 
     rtc = Map.fetch!(rts, rt)
-    host = Keyword.fetch!(rtc, :host)
+    host = Keyword.get(rtc, :host, "localhost")
     port = Keyword.get(rtc, :port, @default_port)
     target = Keyword.get(rtc, :target, :host)
 
     # Change target before build_path is cached.
     update_config(target, nerves_deps)
+
+    unless File.exists?("mix.exs") do
+      Mix.raise("No mix.exs in current folder.")
+    end
 
     pc = Mix.Project.config()
     name = pc |> Keyword.fetch!(:app)

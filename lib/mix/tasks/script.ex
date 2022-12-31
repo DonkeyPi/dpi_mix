@@ -1,15 +1,16 @@
-defmodule Mix.Tasks.Ash.Eval do
+defmodule Mix.Tasks.Ash.Script do
   use Mix.Task
   alias Mix.Tasks.Ash
 
-  @shortdoc "Evaluate expression on app vm"
+  @shortdoc "Evaluate script on app vm"
 
   def run(args) do
     :ssh.start()
     ash = Ash.basic_config(true)
-    code = Enum.join(args, " ")
+    path = Enum.join(args, " ")
+    code = File.read!(path)
     Mix.shell().info("Evaluating on: #{Ash.runtime_id(ash)}")
-    Mix.shell().info("Evaluating code: #{code}")
+    Mix.shell().info("Evaluating script: #{path}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]

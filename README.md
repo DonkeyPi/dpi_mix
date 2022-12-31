@@ -34,9 +34,9 @@ rpi4
 #runtimes defined in mix.exs
 #set rpi4 as default runtime
 #creates file .ash_runtime.sel
-mix ash.runtime rpi4
+mix ash.select rpi4
 #arg default to hostname
-mix ash.runtime
+mix ash.select
 
 #queries cookie and shows shell commands
 mix ash.shell

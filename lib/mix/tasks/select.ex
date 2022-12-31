@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Ash.Runtime do
+defmodule Mix.Tasks.Ash.Select do
   use Mix.Task
   alias Mix.Tasks.Ash
 
@@ -19,5 +19,7 @@ defmodule Mix.Tasks.Ash.Runtime do
     File.write!(path, "#{rt}\n")
     Mix.shell().info("Selected runtime #{rt} into runtime file")
     Mix.shell().info("Runtime file #{path}")
+    # load config to raise if runtime does not exists
+    Ash.basic_config(false)
   end
 end

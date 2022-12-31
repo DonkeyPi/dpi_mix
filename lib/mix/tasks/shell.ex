@@ -6,9 +6,15 @@ defmodule Mix.Tasks.Ash.Shell do
 
   # worked out at exs/ssh.exs
   # https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
-  def run(_args) do
-    ash = Ash.init()
-    Mix.shell().info("Connecting to app shell: #{Ash.runtime_id(ash)}")
+  def run(args) do
+    {with_app, type} =
+      case args do
+        [] -> {true, "app"}
+        ["runtime"] -> {false, "runtime"}
+      end
+
+    ash = Ash.basic_config(with_app)
+    Mix.shell().info("Connecting to #{type} shell: #{Ash.runtime_id(ash)}")
     Mix.shell().info("ssh -p#{ash.port} #{ash.name}@#{ash.host}")
     host = ash.host |> String.to_charlist()
     user = ash.name |> Atom.to_charlist()
@@ -19,6 +25,19 @@ defmodule Mix.Tasks.Ash.Shell do
     _user = wait_user()
     System.no_halt(true)
   end
+
+  # ["nerves"] -> {:std_shell, 22, 'ash'}
+  # wont autocomplete
+  # left as reference
+  # nerves not always available
+  # everything should be doable from runtime
+  # def std_shell(host, port, opts) do
+  #   spawn(fn ->
+  #     :ok = :ssh.start()
+  #     :ok = :ssh.shell(host, port, opts)
+  #     System.halt()
+  #   end)
+  # end
 
   def start_shell(host, port, opts) do
     spawn(fn -> run_shell(host, port, opts) end)
