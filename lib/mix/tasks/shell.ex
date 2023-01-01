@@ -8,9 +8,10 @@ defmodule Mix.Tasks.Ash.Shell do
   # https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
   def run(args) do
     {with_app, type} =
-      case args do
-        [] -> {true, "app"}
-        ["runtime"] -> {false, "runtime"}
+      case {args, File.exists?("mix.exs")} do
+        {[], true} -> {true, "app"}
+        {["runtime"], _} -> {false, "runtime"}
+        {_, false} -> {false, "runtime"}
       end
 
     ash = Ash.basic_config(with_app)
