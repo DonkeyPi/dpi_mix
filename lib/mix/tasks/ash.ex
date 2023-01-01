@@ -92,7 +92,8 @@ defmodule Mix.Tasks.Ash do
     stdout_loop(conn, chan)
   end
 
-  defp update_config(target, nerves_deps) do
+  defp update_config(target, variant, nerves_deps) do
+    System.put_env("MIX_VARIANT", "#{variant}")
     # Override target and reload config/config.exs.
     if Mix.target() != target do
       System.put_env("MIX_TARGET", "#{target}")
@@ -148,9 +149,11 @@ defmodule Mix.Tasks.Ash do
     host = Keyword.get(rtc, :host, "localhost")
     port = Keyword.get(rtc, :port, @default_port)
     target = Keyword.get(rtc, :target, :host)
+    variant = Keyword.get(rtc, :variant, target)
 
     %{
       name: :ash,
+      variant: variant,
       target: target,
       host: host,
       port: port,
@@ -215,9 +218,10 @@ defmodule Mix.Tasks.Ash do
     host = Keyword.get(rtc, :host, "localhost")
     port = Keyword.get(rtc, :port, @default_port)
     target = Keyword.get(rtc, :target, :host)
+    variant = Keyword.get(rtc, :variant, target)
 
     # Change target before build_path is cached.
-    update_config(target, nerves_deps)
+    update_config(target, variant, nerves_deps)
 
     unless File.exists?("mix.exs") do
       Mix.raise("No mix.exs in current folder.")
@@ -244,6 +248,7 @@ defmodule Mix.Tasks.Ash do
     ash_config = %{
       name: name,
       version: version,
+      variant: variant,
       target: target,
       host: host,
       port: port,
