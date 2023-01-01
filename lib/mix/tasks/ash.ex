@@ -131,13 +131,13 @@ defmodule Mix.Tasks.Ash do
       |> String.trim()
       |> String.to_atom()
 
-    mix_ex =
+    dot_config =
       ash_mix_exs
       |> Code.eval_file()
       |> elem(0)
 
     rts =
-      mix_ex
+      dot_config
       |> Keyword.get(:ash_runtimes, [])
       |> Enum.into(%{})
 
@@ -158,6 +158,7 @@ defmodule Mix.Tasks.Ash do
       host: host,
       port: port,
       runtime: rt,
+      dot_config: dot_config,
       runtime_entry: rts[rt],
       ash_mix_srt_f: @ash_mix_srt,
       ash_mix_srt_p: ash_mix_srt,
@@ -177,64 +178,21 @@ defmodule Mix.Tasks.Ash do
     pc = Mix.Project.config()
     name = pc |> Keyword.fetch!(:app)
     version = pc |> Keyword.fetch!(:version)
-    Map.merge(map, %{name: name, version: version})
+    Map.merge(map, %{pc: pc, name: name, version: version})
   end
 
   defp load_config() do
-    ash_mix_exs = find_path(@ash_mix_exs, @ash_mix_exs)
-    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
+    ash = basic_config(true)
 
-    unless File.exists?(ash_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
-    end
-
-    unless File.exists?(ash_mix_exs) do
-      Mix.raise("Runtime not configured, create file #{@ash_mix_exs}")
-    end
-
-    rt =
-      ash_mix_srt
-      |> File.read!()
-      |> String.trim()
-      |> String.to_atom()
-
-    mix_ex =
-      ash_mix_exs
-      |> Code.eval_file()
-      |> elem(0)
-
-    nerves_deps = mix_ex |> Keyword.get(:nerves_deps, [])
-
-    rts =
-      mix_ex
-      |> Keyword.get(:ash_runtimes, [])
-      |> Enum.into(%{})
-
-    unless Map.has_key?(rts, rt) do
-      Mix.raise("Runtime #{rt} not found in #{ash_mix_exs}")
-    end
-
-    rtc = Map.fetch!(rts, rt)
-    host = Keyword.get(rtc, :host, "localhost")
-    port = Keyword.get(rtc, :port, @default_port)
-    target = Keyword.get(rtc, :target, :host)
-    variant = Keyword.get(rtc, :variant, target)
+    nerves_deps = ash.dot_config |> Keyword.get(:nerves_deps, [])
 
     # Change target before build_path is cached.
-    update_config(target, variant, nerves_deps)
-
-    unless File.exists?("mix.exs") do
-      Mix.raise("No mix.exs in current folder.")
-    end
-
-    pc = Mix.Project.config()
-    name = pc |> Keyword.fetch!(:app)
-    version = pc |> Keyword.fetch!(:version)
+    update_config(ash.target, ash.variant, nerves_deps)
 
     build_path = Mix.Project.build_path()
 
     bundle_name =
-      pc
+      ash.pc
       |> Keyword.fetch!(:app)
       |> Atom.to_string()
       |> String.replace_suffix("", ".tgz")
@@ -245,28 +203,16 @@ defmodule Mix.Tasks.Ash do
 
     deps_path = Mix.Project.deps_path()
 
-    ash_config = %{
-      name: name,
-      version: version,
-      variant: variant,
-      target: target,
-      host: host,
-      port: port,
-      runtime: rt,
+    config = %{
       deps_path: deps_path,
       build_path: build_path,
       runs_folder: @runs_folder,
-      runtime_entry: rts[rt],
-      ash_mix_srt_f: @ash_mix_srt,
-      ash_mix_srt_p: ash_mix_srt,
-      ash_mix_exs_f: @ash_mix_exs,
-      ash_mix_exs_p: ash_mix_exs,
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
 
     %{
-      ash_config: ash_config,
+      ash_config: Map.merge(ash, config),
       nerves_deps: nerves_deps
     }
   end
