@@ -20,12 +20,12 @@ erl_crash.dump
 *.ez
 
 # Ignore package tarball (built via "mix hex.build").
-ash_mix-*.tar
+dpi_mix-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
 
 /.elixir_ls/
 
-.ash_runtime.*
+.dpi_runtime.*
 

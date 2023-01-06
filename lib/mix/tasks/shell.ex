@@ -1,6 +1,6 @@
-defmodule Mix.Tasks.Ash.Shell do
+defmodule Mix.Tasks.Dpi.Shell do
   use Mix.Task
-  alias Mix.Tasks.Ash
+  alias Mix.Tasks.Dpi
 
   @shortdoc "Connect to app shell"
 
@@ -14,20 +14,20 @@ defmodule Mix.Tasks.Ash.Shell do
         {_, false} -> {false, "runtime"}
       end
 
-    ash = Ash.basic_config(with_app)
-    Mix.shell().info("Connecting to #{type} shell: #{Ash.runtime_id(ash)}")
-    Mix.shell().info("ssh -p#{ash.port} #{ash.name}@#{ash.host}")
-    host = ash.host |> String.to_charlist()
-    user = ash.name |> Atom.to_charlist()
+    dpi = Dpi.basic_config(with_app)
+    Mix.shell().info("Connecting to #{type} shell: #{Dpi.runtime_id(dpi)}")
+    Mix.shell().info("ssh -p#{dpi.port} #{dpi.name}@#{dpi.host}")
+    host = dpi.host |> String.to_charlist()
+    user = dpi.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]
-    args = [host, ash.port, opts]
+    args = [host, dpi.port, opts]
     :ok = Supervisor.terminate_child(:kernel_sup, :user)
     _pid = :user_drv.start(['tty_sl -c -e', {__MODULE__, :start_shell, args}])
     _user = wait_user()
     System.no_halt(true)
   end
 
-  # ["nerves"] -> {:std_shell, 22, 'ash'}
+  # ["nerves"] -> {:std_shell, 22, 'dpi'}
   # wont autocomplete
   # left as reference
   # nerves not always available
@@ -65,9 +65,9 @@ defmodule Mix.Tasks.Ash.Shell do
   end
 
   defp expander(conn) do
-    {:ok, chan} = :ssh_connection.session_channel(conn, Ash.toms())
-    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Ash.toms())
-    :ok = :ssh_connection.send(conn, chan, "expand", Ash.toms())
+    {:ok, chan} = :ssh_connection.session_channel(conn, Dpi.toms())
+    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Dpi.toms())
+    :ok = :ssh_connection.send(conn, chan, "expand", Dpi.toms())
     loop(conn, chan, nil)
   end
 
@@ -75,7 +75,7 @@ defmodule Mix.Tasks.Ash.Shell do
     receive do
       {:expand, pid, code} ->
         code = :erlang.term_to_binary(code)
-        :ok = :ssh_connection.send(conn, chan, "apply " <> code, Ash.toms())
+        :ok = :ssh_connection.send(conn, chan, "apply " <> code, Dpi.toms())
         loop(conn, chan, pid)
 
       {:ssh_cm, _, {:data, _, _, data}} ->

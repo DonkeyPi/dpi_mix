@@ -1,11 +1,11 @@
-defmodule Mix.Tasks.Ash do
+defmodule Mix.Tasks.Dpi do
   use Mix.Task
 
   @default_port 8022
-  @runs_folder "/ash_runs"
-  # ~/.ash_runtime is runtime folder
-  @ash_mix_srt ".ash_mix.srt"
-  @ash_mix_exs ".ash_mix.exs"
+  @runs_folder "/dpi_runs"
+  # ~/.dpi_runtime is runtime folder
+  @dpi_mix_srt ".dpi_mix.srt"
+  @dpi_mix_exs ".dpi_mix.exs"
 
   # global timeout
   @toms 5_000
@@ -14,29 +14,29 @@ defmodule Mix.Tasks.Ash do
   @moms 2_000
 
   def toms(), do: @toms
-  def ash_mix_srt(), do: @ash_mix_srt
-  def find_ash_mix_srt(), do: find_path(@ash_mix_srt, @ash_mix_srt)
-  def runtime_id(ash), do: "#{inspect({ash.runtime, ash.runtime_entry})}"
-  def init(), do: get_config().ash_config
+  def dpi_mix_srt(), do: @dpi_mix_srt
+  def find_dpi_mix_srt(), do: find_path(@dpi_mix_srt, @dpi_mix_srt)
+  def runtime_id(dpi), do: "#{inspect({dpi.runtime, dpi.runtime_entry})}"
+  def init(), do: get_config().dpi_config
 
   def run(args) do
     case args do
       [] ->
-        ash = init()
-        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
-        Mix.shell().info("Runtime file: #{ash.ash_mix_srt_p}")
-        Mix.shell().info("Bundle path: #{ash.bundle_path}")
-        Mix.shell().info("Config map: #{inspect(ash)}")
+        dpi = init()
+        Mix.shell().info("Selected runtime: #{runtime_id(dpi)}")
+        Mix.shell().info("Runtime file: #{dpi.dpi_mix_srt_p}")
+        Mix.shell().info("Bundle path: #{dpi.bundle_path}")
+        Mix.shell().info("Config map: #{inspect(dpi)}")
 
       ["upload"] ->
-        ash = init()
-        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
-        Mix.Task.run("upload", [ash.host])
+        dpi = init()
+        Mix.shell().info("Selected runtime: #{runtime_id(dpi)}")
+        Mix.Task.run("upload", [dpi.host])
 
       [task | args] ->
         if task == "test", do: System.put_env("MIX_ENV", "test")
-        ash = init()
-        Mix.shell().info("Selected runtime: #{runtime_id(ash)}")
+        dpi = init()
+        Mix.shell().info("Selected runtime: #{runtime_id(dpi)}")
         Mix.Task.run(task, args)
     end
   end
@@ -59,13 +59,13 @@ defmodule Mix.Tasks.Ash do
   end
 
   def get_rt() do
-    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
+    dpi_mix_srt = find_path(@dpi_mix_srt, @dpi_mix_srt)
 
-    unless File.exists?(ash_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
+    unless File.exists?(dpi_mix_srt) do
+      Mix.raise("Runtime not selected, use: mix dpi.select <runtime>")
     end
 
-    ash_mix_srt
+    dpi_mix_srt
     |> File.read!()
     |> String.trim()
     |> String.to_atom()
@@ -114,35 +114,35 @@ defmodule Mix.Tasks.Ash do
   end
 
   def basic_config(with_app) do
-    ash_mix_exs = find_path(@ash_mix_exs, @ash_mix_exs)
-    ash_mix_srt = find_path(@ash_mix_srt, @ash_mix_srt)
+    dpi_mix_exs = find_path(@dpi_mix_exs, @dpi_mix_exs)
+    dpi_mix_srt = find_path(@dpi_mix_srt, @dpi_mix_srt)
 
-    unless File.exists?(ash_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix ash.select <runtime>")
+    unless File.exists?(dpi_mix_srt) do
+      Mix.raise("Runtime not selected, use: mix dpi.select <runtime>")
     end
 
-    unless File.exists?(ash_mix_exs) do
-      Mix.raise("Runtime not configured, create file #{@ash_mix_exs}")
+    unless File.exists?(dpi_mix_exs) do
+      Mix.raise("Runtime not configured, create file #{@dpi_mix_exs}")
     end
 
     rt =
-      ash_mix_srt
+      dpi_mix_srt
       |> File.read!()
       |> String.trim()
       |> String.to_atom()
 
     dot_config =
-      ash_mix_exs
+      dpi_mix_exs
       |> Code.eval_file()
       |> elem(0)
 
     rts =
       dot_config
-      |> Keyword.get(:ash_runtimes, [])
+      |> Keyword.get(:dpi_runtimes, [])
       |> Enum.into(%{})
 
     unless Map.has_key?(rts, rt) do
-      Mix.raise("Runtime #{rt} not found in #{ash_mix_exs}")
+      Mix.raise("Runtime #{rt} not found in #{dpi_mix_exs}")
     end
 
     rtc = Map.fetch!(rts, rt)
@@ -152,7 +152,7 @@ defmodule Mix.Tasks.Ash do
     variant = Keyword.get(rtc, :variant, target)
 
     %{
-      name: :ash,
+      name: :dpi,
       variant: variant,
       target: target,
       host: host,
@@ -160,10 +160,10 @@ defmodule Mix.Tasks.Ash do
       runtime: rt,
       dot_config: dot_config,
       runtime_entry: rts[rt],
-      ash_mix_srt_f: @ash_mix_srt,
-      ash_mix_srt_p: ash_mix_srt,
-      ash_mix_exs_f: @ash_mix_exs,
-      ash_mix_exs_p: ash_mix_exs
+      dpi_mix_srt_f: @dpi_mix_srt,
+      dpi_mix_srt_p: dpi_mix_srt,
+      dpi_mix_exs_f: @dpi_mix_exs,
+      dpi_mix_exs_p: dpi_mix_exs
     }
     |> load_app(with_app)
   end
@@ -182,17 +182,17 @@ defmodule Mix.Tasks.Ash do
   end
 
   defp load_config() do
-    ash = basic_config(true)
+    dpi = basic_config(true)
 
-    nerves_deps = ash.dot_config |> Keyword.get(:nerves_deps, [])
+    nerves_deps = dpi.dot_config |> Keyword.get(:nerves_deps, [])
 
     # Change target before build_path is cached.
-    update_config(ash.target, ash.variant, nerves_deps)
+    update_config(dpi.target, dpi.variant, nerves_deps)
 
     build_path = Mix.Project.build_path()
 
     bundle_name =
-      ash.pc
+      dpi.pc
       |> Keyword.fetch!(:app)
       |> Atom.to_string()
       |> String.replace_suffix("", ".tgz")
@@ -212,7 +212,7 @@ defmodule Mix.Tasks.Ash do
     }
 
     %{
-      ash_config: Map.merge(ash, config),
+      dpi_config: Map.merge(dpi, config),
       nerves_deps: nerves_deps
     }
   end
@@ -339,7 +339,7 @@ defmodule Mix.Tasks.Ash do
   defp recurse_deps([{name, props} | tail], acc) do
     # Use cached root build_path
     path =
-      get_config()[:ash_config][:build_path]
+      get_config()[:dpi_config][:build_path]
       |> Path.join("lib")
       |> Path.join("#{name}")
 
@@ -371,7 +371,7 @@ defmodule Mix.Tasks.Ash do
       case props do
         {v} when is_binary(v) ->
           # Use cached root deps_path
-          get_config()[:ash_config][:deps_path]
+          get_config()[:dpi_config][:deps_path]
           |> Path.join("#{name}")
 
         {p} when is_list(p) ->
@@ -381,7 +381,7 @@ defmodule Mix.Tasks.Ash do
           Keyword.get(p, :path)
       end
 
-    # FIXME: :elixir_make returns nil path after adding timezone dep to ash_app
+    # FIXME: :elixir_make returns nil path after adding timezone dep to dpi_app
     if path != nil and File.dir?(path), do: path, else: nil
   end
 

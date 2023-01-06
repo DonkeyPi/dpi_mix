@@ -1,30 +1,30 @@
-# AppShell Mix
+# DonkeyPi Mix
 
 ## Development
 
 ```bash
-#creates ash_mix-<version> in project folder
+#creates dpi_mix-<version> in project folder
 mix archive.build
-#installs ash_mix-<version>.ez archive to 
+#installs dpi_mix-<version>.ez archive to 
 #/home/samuel/.asdf/installs/
 mix archive.install 
 #requires vscode github authentication
-mix archive.install git https://github.com/AppShellIO/ash_mix
+mix archive.install git https://github.com/DonkeyPi/dpi_mix
 ```
 
 ## Config
 
 ```bash
-#cat .ash_runtime.sel
+#cat .dpi_runtime.sel
 rpi4
-#cat .ash_runtime.exs
+#cat .dpi_runtime.exs
 [
   {:p3420, target: :host, host: "localhost"},
   {:svmbair, target: :host, host: "localhost"},
-  {:rpi4, target: :rpi4, host: "ash-4ad8.local"},
-  {:rpi400, target: :rpi4, host: "ash-4975.local"},
-  {:rpi3, target: :rpi3, host: "ash-62c2.local"},
-  {:qemu, target: :x86_64, host: "ash-3456.local"}
+  {:rpi4, target: :rpi4, host: "dpi-4ad8.local"},
+  {:rpi400, target: :rpi4, host: "dpi-4975.local"},
+  {:rpi3, target: :rpi3, host: "dpi-62c2.local"},
+  {:qemu, target: :x86_64, host: "dpi-3456.local"}
 ]
 ```
 
@@ -33,38 +33,38 @@ rpi4
 ```bash
 #runtimes defined in mix.exs
 #set rpi4 as default runtime
-#creates file .ash_runtime.sel
-mix ash.select rpi4
+#creates file .dpi_mix.srt
+mix dpi.select rpi4
 #arg default to hostname
-mix ash.select
+mix dpi.select
 
 #queries cookie and shows shell commands
-mix ash.shell
+mix dpi.shell
 
 #connect to the application log
-mix ash.log
+mix dpi.log
 
 #run app on runtime
 #build+upload+start
-mix ash.run
+mix dpi.run
 
 #upload app to runtime
-mix ash.upload
+mix dpi.upload
 
 #manages deps for runtime
 #task: get | update | clean | ...
-mix ash.deps <task> <args...>
+mix dpi.deps <task> <args...>
 
 #build app for runtime
-mix ash.build
+mix dpi.build
 
 #start up in runtime
 #auto flag set to true
-mix ash.start
+mix dpi.start
 
 #stop up in runtime
 #auto flag set to false
-mix ash.stop
+mix dpi.stop
 ```
 
 ## Roadmap

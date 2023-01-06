@@ -1,6 +1,6 @@
-defmodule Mix.Tasks.Ash.Select do
+defmodule Mix.Tasks.Dpi.Select do
   use Mix.Task
-  alias Mix.Tasks.Ash
+  alias Mix.Tasks.Dpi
 
   @shortdoc "Selects default runtime"
 
@@ -15,11 +15,11 @@ defmodule Mix.Tasks.Ash.Select do
           hostname |> List.to_string()
       end
 
-    path = Ash.find_ash_mix_srt()
+    path = Dpi.find_dpi_mix_srt()
     File.write!(path, "#{rt}\n")
     Mix.shell().info("Selected runtime #{rt} into runtime file")
     Mix.shell().info("Runtime file #{path}")
     # load config to raise if runtime does not exists
-    Ash.basic_config(false)
+    Dpi.basic_config(false)
   end
 end

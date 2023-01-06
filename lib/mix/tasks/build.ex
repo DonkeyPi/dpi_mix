@@ -1,15 +1,15 @@
-defmodule Mix.Tasks.Ash.Build do
+defmodule Mix.Tasks.Dpi.Build do
   use Mix.Task
-  alias Mix.Tasks.Ash
+  alias Mix.Tasks.Dpi
 
   @shortdoc "Builds application for selected runtime"
 
   def run(_args) do
-    ash = Ash.init()
-    Mix.shell().info("Building for: #{Ash.runtime_id(ash)}")
+    dpi = Dpi.init()
+    Mix.shell().info("Building for: #{Dpi.runtime_id(dpi)}")
     Mix.Task.run("compile")
-    deps = Mix.Project.config() |> Ash.get_deps()
-    apps = [ash.name | deps]
+    deps = Mix.Project.config() |> Dpi.get_deps()
+    apps = [dpi.name | deps]
 
     paths =
       for app <- apps do
@@ -19,9 +19,9 @@ defmodule Mix.Tasks.Ash.Build do
     # priv folder are linked back from _build/app/priv
     saved =
       Enum.filter(paths, fn path ->
-        app = Path.join(ash.build_path, path)
+        app = Path.join(dpi.build_path, path)
         priv = Path.join(app, "priv")
-        save = Path.join(ash.build_path, "#{path}.priv")
+        save = Path.join(dpi.build_path, "#{path}.priv")
 
         case File.read_link(priv) do
           {:ok, link} ->
@@ -42,10 +42,10 @@ defmodule Mix.Tasks.Ash.Build do
       end)
 
     cwd = File.cwd!()
-    :ok = File.cd!(ash.build_path)
+    :ok = File.cd!(dpi.build_path)
     # dereference makes for huge files that install slow
     opts = [:compressed]
-    bundle_path = ash.bundle_path |> String.to_charlist()
+    bundle_path = dpi.bundle_path |> String.to_charlist()
     :ok = :erl_tar.create(bundle_path, paths, opts)
     :ok = File.cd!(cwd)
     Mix.shell().info("Bundle : #{bundle_path}")
@@ -53,9 +53,9 @@ defmodule Mix.Tasks.Ash.Build do
 
     # put links back to avoid stalled files
     Enum.each(saved, fn path ->
-      app = Path.join(ash.build_path, path)
+      app = Path.join(dpi.build_path, path)
       priv = Path.join(app, "priv")
-      save = Path.join(ash.build_path, "#{path}.priv")
+      save = Path.join(dpi.build_path, "#{path}.priv")
       link = File.read!(save)
       real = Path.join(app, link)
       File.rm_rf!(priv)

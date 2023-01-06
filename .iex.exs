@@ -1,1 +1,1 @@
-alias Mix.Tasks.Ash
+alias Mix.Tasks.Dpi

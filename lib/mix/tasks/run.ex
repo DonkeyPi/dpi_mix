@@ -1,6 +1,6 @@
-defmodule Mix.Tasks.Ash.Run do
+defmodule Mix.Tasks.Dpi.Run do
   use Mix.Task
-  alias Mix.Tasks.Ash
+  alias Mix.Tasks.Dpi
 
   @shortdoc "Runs script or application on selected runtime"
 
@@ -13,28 +13,28 @@ defmodule Mix.Tasks.Ash.Run do
 
   defp run_script(path) do
     :ssh.start()
-    ash = Ash.basic_config(true)
+    dpi = Dpi.basic_config(true)
     code = File.read!(path)
-    Mix.shell().info("Running on: #{Ash.runtime_id(ash)}")
+    Mix.shell().info("Running on: #{Dpi.runtime_id(dpi)}")
     Mix.shell().info("Running script: #{path}")
-    host = ash.host |> String.to_charlist()
-    user = ash.name |> Atom.to_charlist()
+    host = dpi.host |> String.to_charlist()
+    user = dpi.name |> Atom.to_charlist()
     opts = [silently_accept_hosts: true, user: user]
-    {:ok, conn} = :ssh.connect(host, ash.port, opts)
-    {:ok, chan} = :ssh_connection.session_channel(conn, Ash.toms())
-    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Ash.toms())
-    :ok = :ssh_connection.send(conn, chan, "eval " <> code, Ash.toms())
-    Ash.stdout(conn, chan)
+    {:ok, conn} = :ssh.connect(host, dpi.port, opts)
+    {:ok, chan} = :ssh_connection.session_channel(conn, Dpi.toms())
+    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Dpi.toms())
+    :ok = :ssh_connection.send(conn, chan, "eval " <> code, Dpi.toms())
+    Dpi.stdout(conn, chan)
   end
 
   defp run_app() do
-    Mix.Task.run("ash.upload", ["keep"])
-    ash = Ash.init()
-    Mix.shell().info("Running on: #{Ash.runtime_id(ash)}")
+    Mix.Task.run("dpi.upload", ["keep"])
+    dpi = Dpi.init()
+    Mix.shell().info("Running on: #{Dpi.runtime_id(dpi)}")
     conn = Process.get(:ssh_conn)
-    {:ok, chan} = :ssh_connection.session_channel(conn, Ash.toms())
-    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Ash.toms())
-    :ok = :ssh_connection.send(conn, chan, "run", Ash.toms())
-    Ash.stdout(conn, chan)
+    {:ok, chan} = :ssh_connection.session_channel(conn, Dpi.toms())
+    :success = :ssh_connection.subsystem(conn, chan, 'runtime', Dpi.toms())
+    :ok = :ssh_connection.send(conn, chan, "run", Dpi.toms())
+    Dpi.stdout(conn, chan)
   end
 end
