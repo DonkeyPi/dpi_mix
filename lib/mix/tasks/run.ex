@@ -7,13 +7,13 @@ defmodule Mix.Tasks.Dpi.Run do
   def run(args) do
     case args do
       [] -> run_app()
-      _ -> run_script(Enum.join(args, " "))
+      _ -> run_script(File.exists?("mix.exs"), Enum.join(args, " "))
     end
   end
 
-  defp run_script(path) do
+  defp run_script(with_app, path) do
     :ssh.start()
-    dpi = Dpi.basic_config(true)
+    dpi = Dpi.basic_config(with_app)
     code = File.read!(path)
     Mix.shell().info("Running on: #{Dpi.runtime_id(dpi)}")
     Mix.shell().info("Running script: #{path}")
