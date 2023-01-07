@@ -145,27 +145,34 @@ defmodule Mix.Tasks.Dpi do
       Mix.raise("Runtime #{rt} not found in #{dpi_mix_exs}")
     end
 
-    rtc = Map.fetch!(rts, rt)
-    host = Keyword.get(rtc, :host, "localhost")
-    port = Keyword.get(rtc, :port, @default_port)
-    target = Keyword.get(rtc, :target, :host)
-    variant = Keyword.get(rtc, :variant, target)
+    rtc = Map.fetch!(rts, rt) |> rt_defaults()
 
     %{
       name: :dpi,
-      variant: variant,
-      target: target,
-      host: host,
-      port: port,
+      variant: rtc[:variant],
+      target: rtc[:target],
+      host: rtc[:host],
+      port: rtc[:port],
       runtime: rt,
+      runtimes: rts,
       dot_config: dot_config,
-      runtime_entry: rts[rt],
+      runtime_entry: rtc,
       dpi_mix_srt_f: @dpi_mix_srt,
       dpi_mix_srt_p: dpi_mix_srt,
       dpi_mix_exs_f: @dpi_mix_exs,
       dpi_mix_exs_p: dpi_mix_exs
     }
     |> load_app(with_app)
+  end
+
+  def rt_defaults(rtc) do
+    target = Keyword.get(rtc, :target, :host)
+
+    rtc
+    |> Keyword.put_new(:host, "localhost")
+    |> Keyword.put_new(:port, @default_port)
+    |> Keyword.put_new(:target, :host)
+    |> Keyword.put_new(:variant, target)
   end
 
   defp load_app(map, false), do: map

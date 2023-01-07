@@ -7,14 +7,30 @@ defmodule Mix.Tasks.Dpi.Shell do
   # worked out at exs/ssh.exs
   # https://github.com/rebar/rebar/blob/master/src/rebar_shell.erl
   def run(args) do
-    {with_app, type} =
+    {with_app, type, rt} =
       case {args, File.exists?("mix.exs")} do
-        {[], true} -> {true, "app"}
-        {["runtime"], _} -> {false, "runtime"}
-        {_, false} -> {false, "runtime"}
+        {["runtime"], _} -> {false, "runtime", nil}
+        {[runtime], _} -> {false, "runtime", runtime}
+        {[], true} -> {true, "app", nil}
+        {_, false} -> {false, "runtime", nil}
       end
 
     dpi = Dpi.basic_config(with_app)
+
+    dpi =
+      if rt != nil do
+        rt = rt |> String.to_atom()
+
+        unless Map.has_key?(dpi.runtimes, rt) do
+          Mix.raise("Runtime #{rt} not found in #{dpi.dpi_mix_exs_p}")
+        end
+
+        rtc = dpi.runtimes[rt] |> Dpi.rt_defaults()
+        %{dpi | port: rtc[:port], host: rtc[:host], runtime: rt, runtime_entry: rtc}
+      else
+        dpi
+      end
+
     Mix.shell().info("Connecting to #{type} shell: #{Dpi.runtime_id(dpi)}")
     Mix.shell().info("ssh -p#{dpi.port} #{dpi.name}@#{dpi.host}")
     host = dpi.host |> String.to_charlist()
