@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Dpi.Sign do
       case dpi.host do
         "localhost" -> dpi.runtime
         "127.0.0.1" -> dpi.runtime
-        _ -> dpi.host
+        _ -> dpi.host |> String.replace_suffix(".local", "")
       end
 
     signature = sign(hostname, dpi.name, privkey)
