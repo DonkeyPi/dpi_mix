@@ -23,8 +23,7 @@ defmodule Mix.Tasks.Dpi.Sign do
   end
 
   defp load_privkey() do
-    home = System.user_home!()
-    path = Path.join([home, ".ssh", "donkeypi.pem"])
+    path = Path.join(Dpi.user_dir(), "id_rsa")
     pem = File.read!(path)
     [privkey] = :public_key.pem_decode(pem)
     :public_key.pem_entry_decode(privkey)
