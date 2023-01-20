@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Dpi.Sign do
 
     signature = sign(hostname, dpi.name, privkey)
     File.mkdir_p!("priv")
-    path = Path.join("priv", "signature.txt")
+    path = Path.join("priv", "signature")
     File.write!(path, signature)
   end
 
