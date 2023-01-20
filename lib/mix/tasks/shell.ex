@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Dpi.Shell do
     Mix.shell().info("ssh -p#{dpi.port} #{dpi.name}@#{dpi.host}")
     host = dpi.host |> String.to_charlist()
     user = dpi.name |> Atom.to_charlist()
-    opts = [silently_accept_hosts: true, user: user]
+    opts = [silently_accept_hosts: true, user: user] |> Dpi.add_user_dir()
     args = [host, dpi.port, opts]
     :ok = Supervisor.terminate_child(:kernel_sup, :user)
     _pid = :user_drv.start(['tty_sl -c -e', {__MODULE__, :start_shell, args}])

@@ -400,4 +400,24 @@ defmodule Mix.Tasks.Dpi do
       end
     end
   end
+
+  def user_dir(), do: user_dir(File.cwd!())
+
+  def user_dir("/"), do: nil
+
+  def user_dir(cwd) do
+    dir = Path.join(cwd, ".ssh")
+
+    case File.dir?(dir) do
+      true -> dir
+      _ -> Path.dirname(cwd) |> user_dir()
+    end
+  end
+
+  def add_user_dir(opts) do
+    case user_dir() do
+      nil -> opts
+      dir -> opts ++ [user_dir: String.to_charlist(dir)]
+    end
+  end
 end

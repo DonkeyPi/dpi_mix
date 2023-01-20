@@ -6,7 +6,7 @@ defmodule Dpi.Mix.MixProject do
   def project do
     [
       app: :dpi_mix,
-      version: "0.2.8",
+      version: "0.2.9",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       archives: [nerves_bootstrap: "~> 1.11"],

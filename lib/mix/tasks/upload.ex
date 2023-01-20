@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Dpi.Upload do
     Mix.shell().info("Uploading bundle: #{dpi.bundle_name}")
     host = dpi.host |> String.to_charlist()
     user = dpi.name |> Atom.to_charlist()
-    opts = [silently_accept_hosts: true, user: user]
+    opts = [silently_accept_hosts: true, user: user] |> Dpi.add_user_dir()
     {:ok, chan, conn} = :ssh_sftp.start_channel(host, dpi.port, opts)
 
     :ok =
