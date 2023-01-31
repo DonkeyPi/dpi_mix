@@ -11,6 +11,10 @@ defmodule Mix.Tasks.Dpi.Keygen do
     end
   end
 
+  @ssh ".ssh"
+  @prv Path.join(@ssh, "id_rsa")
+  @pub Path.join(@ssh, "id_rsa.pub")
+
   def key_pair(name \\ nil) do
     {:RSAPrivateKey, _, modulus, publicExponent, _, _, _, _exponent1, _, _, _otherPrimeInfos} =
       rsa_private_key = :public_key.generate_key({:rsa, 4096, 65537})
@@ -24,9 +28,13 @@ defmodule Mix.Tasks.Dpi.Keygen do
     public_key = :ssh_file.encode([{rsa_public_key, [{:comment, comment}]}], :openssh_key)
 
     if name == nil do
-      IO.puts(~s/PUBLIC KEY:\n\n#{public_key}\n\nPRIVATE KEY\n\n#{private_key}/)
+      File.mkdir_p!(@ssh)
+      if File.exists?(@prv), do: Mix.raise("Key file exists: #{@prv}")
+      if File.exists?(@pub), do: Mix.raise("Key file exists: #{@pub}")
+      File.write!(@prv, private_key)
+      File.write!(@pub, public_key)
     else
-      File.write!("#{name}.pem", private_key)
+      File.write!("#{name}", private_key)
       File.write!("#{name}.pub", public_key)
     end
   end
