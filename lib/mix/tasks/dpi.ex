@@ -191,7 +191,7 @@ defmodule Mix.Tasks.Dpi do
   defp load_config() do
     dpi = basic_config(true)
 
-    nerves_deps = dpi.dot_config |> Keyword.get(:nerves_deps, [])
+    nerves_deps = dpi.dot_config |> Keyword.get(:nerves_deps, nerves_deps())
 
     # Change target before build_path is cached.
     update_config(dpi.target, dpi.variant, nerves_deps)
@@ -419,5 +419,14 @@ defmodule Mix.Tasks.Dpi do
       nil -> opts
       dir -> opts ++ [user_dir: String.to_charlist(dir)]
     end
+  end
+
+  def nerves_deps() do
+    [
+      {:nerves, "~> 1.8", runtime: false},
+      {:nerves_system_rpi3, "~> 1.20.2", runtime: false, targets: :rpi3},
+      {:nerves_system_rpi4, "~> 1.20.2", runtime: false, targets: :rpi4},
+      {:elixir_make, "~> 0.6", runtime: false}
+    ]
   end
 end
