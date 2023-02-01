@@ -146,6 +146,7 @@ defmodule Mix.Tasks.Dpi do
     end
 
     rtc = Map.fetch!(rts, rt) |> rt_defaults()
+    root = dpi_mix_exs |> Path.dirname()
 
     %{
       name: :dpi,
@@ -157,6 +158,7 @@ defmodule Mix.Tasks.Dpi do
       runtimes: rts,
       dot_config: dot_config,
       runtime_entry: rtc,
+      root: root,
       dpi_mix_srt_f: @dpi_mix_srt,
       dpi_mix_srt_p: dpi_mix_srt,
       dpi_mix_exs_f: @dpi_mix_exs,
@@ -195,11 +197,9 @@ defmodule Mix.Tasks.Dpi do
     nerves_deps = dpi.dot_config |> Keyword.get(:nerves_deps, nerves_deps())
 
     # relative to .dpi_mix.exs
-    root = dpi |> Map.fetch!(:dpi_mix_exs_p) |> Path.dirname()
-
     nerves_deps =
       case nerves_deps? do
-        true -> relative_nerves_deps(root, nerves_deps)
+        true -> relative_deps(dpi.root, nerves_deps)
         false -> nerves_deps
       end
 
@@ -431,7 +431,7 @@ defmodule Mix.Tasks.Dpi do
     end
   end
 
-  def relative_nerves_deps(root, nerves_deps) do
+  def relative_deps(root, nerves_deps) do
     for {name, props} <- nerves_deps do
       props =
         case Keyword.has_key?(props, :path) do
