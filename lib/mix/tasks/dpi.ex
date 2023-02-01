@@ -113,23 +113,27 @@ defmodule Mix.Tasks.Dpi do
     :ok = Application.ensure_started(:nerves_bootstrap)
   end
 
-  def basic_config(with_app) do
+  def basic_config(with_app, rt \\ nil) do
     dpi_mix_exs = find_path(@dpi_mix_exs, @dpi_mix_exs)
     dpi_mix_srt = find_path(@dpi_mix_srt, @dpi_mix_srt)
-
-    unless File.exists?(dpi_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix dpi.select <runtime>")
-    end
 
     unless File.exists?(dpi_mix_exs) do
       Mix.raise("Runtime not configured, create file #{@dpi_mix_exs}")
     end
 
     rt =
-      dpi_mix_srt
-      |> File.read!()
-      |> String.trim()
-      |> String.to_atom()
+      if rt == nil do
+        unless File.exists?(dpi_mix_srt) do
+          Mix.raise("Runtime not selected, use: mix dpi.select <runtime>")
+        end
+
+        dpi_mix_srt
+        |> File.read!()
+        |> String.trim()
+        |> String.to_atom()
+      else
+        rt
+      end
 
     dot_config =
       dpi_mix_exs
@@ -450,10 +454,10 @@ defmodule Mix.Tasks.Dpi do
 
   def nerves_deps() do
     [
-      {:nerves, "~> 1.8", runtime: false},
+      {:nerves, "1.9.1", runtime: false},
       {:nerves_system_rpi3, "~> 1.20.2", runtime: false, targets: :rpi3},
       {:nerves_system_rpi4, "~> 1.20.2", runtime: false, targets: :rpi4},
-      {:elixir_make, "~> 0.6", runtime: false}
+      {:elixir_make, "0.7.2", runtime: false}
     ]
   end
 end
