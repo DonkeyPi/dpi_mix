@@ -163,6 +163,7 @@ defmodule Mix.Tasks.Dpi do
       dot_config: dot_config,
       runtime_entry: rtc,
       root: root,
+      runs_folder: @runs_folder,
       dpi_mix_srt_f: @dpi_mix_srt,
       dpi_mix_srt_p: dpi_mix_srt,
       dpi_mix_exs_f: @dpi_mix_exs,
@@ -227,7 +228,6 @@ defmodule Mix.Tasks.Dpi do
     config = %{
       deps_path: deps_path,
       build_path: build_path,
-      runs_folder: @runs_folder,
       bundle_name: bundle_name,
       bundle_path: bundle_path
     }
