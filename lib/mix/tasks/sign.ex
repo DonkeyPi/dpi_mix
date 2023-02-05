@@ -9,11 +9,13 @@ defmodule Mix.Tasks.Dpi.Sign do
     Mix.shell().info("Signing for: #{Dpi.runtime_id(dpi)}")
     privkey = load_privkey()
 
+    # nat networking requires to use IP in host
+    # use bid to sign when IP is used instead of hostname
     hostname =
       case dpi.host do
         "localhost" -> dpi.runtime
         "127.0.0.1" -> dpi.runtime
-        _ -> dpi.host |> String.replace_suffix(".local", "")
+        _ -> dpi.bid |> String.replace_suffix(".local", "")
       end
 
     signature = sign(hostname, dpi.name, privkey)

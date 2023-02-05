@@ -154,6 +154,7 @@ defmodule Mix.Tasks.Dpi do
 
     %{
       name: :dpi,
+      bid: rtc[:bid],
       variant: rtc[:variant],
       target: rtc[:target],
       host: rtc[:host],
@@ -173,6 +174,7 @@ defmodule Mix.Tasks.Dpi do
   end
 
   def rt_defaults(rtc) do
+    host = Keyword.get(rtc, :host, "localhost")
     target = Keyword.get(rtc, :target, :host)
 
     rtc
@@ -180,6 +182,7 @@ defmodule Mix.Tasks.Dpi do
     |> Keyword.put_new(:port, @default_port)
     |> Keyword.put_new(:target, :host)
     |> Keyword.put_new(:variant, target)
+    |> Keyword.put_new(:bid, host)
   end
 
   defp load_app(map, false), do: map
