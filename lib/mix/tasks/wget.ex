@@ -2,8 +2,9 @@ defmodule Mix.Tasks.Dpi.Wget do
   use Mix.Task
   alias Mix.Tasks.Dpi
 
-  # to get "/tmp/dpi_runtime/screenshot.png"
-  # use mix dpi.wget "screenshot.png"
+  # press Super+PrtScreen
+  # to get /tmp/dpi_runtime/screenshot.png
+  # use mix dpi.wget screenshot.png
   @shortdoc "Downloads files from selected runtime"
 
   def run(args) do
