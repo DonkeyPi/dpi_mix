@@ -58,19 +58,6 @@ defmodule Mix.Tasks.Dpi do
     end
   end
 
-  def get_rt() do
-    dpi_mix_srt = find_path(@dpi_mix_srt, @dpi_mix_srt)
-
-    unless File.exists?(dpi_mix_srt) do
-      Mix.raise("Runtime not selected, use: mix dpi.select <runtime>")
-    end
-
-    dpi_mix_srt
-    |> File.read!()
-    |> String.trim()
-    |> String.to_atom()
-  end
-
   def get_config() do
     if Process.whereis(__MODULE__) == nil do
       config = load_config()
