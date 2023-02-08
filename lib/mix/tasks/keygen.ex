@@ -7,7 +7,7 @@ defmodule Mix.Tasks.Dpi.Keygen do
     case args do
       [] -> key_pair()
       [name] -> key_pair(name)
-      _ -> Mix.raise("use: mix dpi.keygen <filename>")
+      _ -> Mix.raise("usage: mix dpi.keygen <filename>")
     end
   end
 

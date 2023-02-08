@@ -4,8 +4,21 @@ defmodule Mix.Tasks.Dpi.Sign do
 
   @shortdoc "Signs the application"
 
-  def run(_args) do
-    dpi = Dpi.basic_config(true)
+  def run(args) do
+    {app_name, dpi, path} =
+      case args do
+        [app_name, path] ->
+          dpi = Dpi.basic_config(false)
+          {app_name |> String.to_atom(), dpi, path}
+
+        [] ->
+          dpi = Dpi.basic_config(true)
+          {dpi.name, dpi, Path.join("priv", "signature")}
+
+        _ ->
+          Mix.raise("usage: mix dpi.sign <app_name> <filename>")
+      end
+
     Mix.shell().info("Signing for: #{Dpi.runtime_id(dpi)}")
     privkey = load_privkey()
 
@@ -18,9 +31,8 @@ defmodule Mix.Tasks.Dpi.Sign do
         _ -> dpi.bid |> String.replace_suffix(".local", "")
       end
 
-    signature = sign(hostname, dpi.name, privkey)
-    File.mkdir_p!("priv")
-    path = Path.join("priv", "signature")
+    signature = sign(hostname, app_name, privkey)
+    path |> Path.dirname() |> File.mkdir_p!()
     File.write!(path, signature)
   end
 
