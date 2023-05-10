@@ -71,6 +71,7 @@ defmodule Mix.Tasks.Dpi do
     pc
     |> filter_deps()
     |> recurse_deps([])
+    |> Enum.uniq()
   end
 
   def stdout(conn, chan) do
@@ -372,6 +373,7 @@ defmodule Mix.Tasks.Dpi do
         Mix.Project.config()
         |> filter_deps()
         |> recurse_deps([])
+        |> Enum.uniq()
       end) ++ acc
 
     recurse_deps(tail, [name | acc])
