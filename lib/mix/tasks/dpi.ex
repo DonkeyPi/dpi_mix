@@ -71,6 +71,7 @@ defmodule Mix.Tasks.Dpi do
     pc
     |> filter_deps()
     |> recurse_deps([])
+    |> Enum.uniq()
   end
 
   def stdout(conn, chan) do
@@ -366,30 +367,59 @@ defmodule Mix.Tasks.Dpi do
     recurse_deps(tail, acc)
   end
 
+  # mix.rebar.config in _build/
+  # rebar.config in deps/
   defp recurse_path(path, name, tail, acc) do
+    rebar = Path.join(path, "rebar.config")
+
     acc =
-      Mix.Project.in_project(name, path, fn _module ->
-        Mix.Project.config()
-        |> filter_deps()
-        |> recurse_deps([])
-      end) ++ acc
+      case File.exists?(rebar) do
+        true -> load_path_rebar(rebar)
+        false -> load_path_mix(path, name)
+      end ++ acc
 
     recurse_deps(tail, [name | acc])
   end
 
+  defp load_path_rebar(rebar) do
+    {:ok, terms} = :file.consult(rebar)
+    deps = Keyword.get(terms, :deps, [])
+
+    for dep <- deps do
+      case dep do
+        {name, version} -> {name, {version |> to_string}}
+        {name, version, _} -> {name, {version |> to_string}}
+      end
+    end
+    |> recurse_deps([])
+    |> Enum.uniq()
+  end
+
+  defp load_path_mix(path, name) do
+    Mix.Project.in_project(name, path, fn _module ->
+      Mix.Project.config()
+      |> filter_deps()
+      |> recurse_deps([])
+      |> Enum.uniq()
+    end)
+  end
+
   defp get_path(name, props) do
+    # Use cached root deps_path
+    path =
+      get_config()[:dpi_config][:deps_path]
+      |> Path.join("#{name}")
+
     path =
       case props do
         {v} when is_binary(v) ->
-          # Use cached root deps_path
-          get_config()[:dpi_config][:deps_path]
-          |> Path.join("#{name}")
+          path
 
         {p} when is_list(p) ->
-          Keyword.get(p, :path)
+          Keyword.get(p, :path, path)
 
         {_, p} when is_list(p) ->
-          Keyword.get(p, :path)
+          Keyword.get(p, :path, path)
       end
 
     # FIXME: :elixir_make returns nil path after adding timezone dep to dpi_app
